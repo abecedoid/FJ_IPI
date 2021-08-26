@@ -4,6 +4,7 @@ import numpy as np
 import image_utils
 import os
 import cv2
+from interfaces import ParticlePosition
 
 
 def load_labelme_image(path2json: str) -> np.ndarray:
@@ -35,13 +36,14 @@ def load_labelme_droplet_labels(path2json: str) -> list:
     return droplets
 
 
-class DropletLabel(object):
+class DropletLabel(ParticlePosition):
     """Holds info about the droplet label
     _points is a list of two points, where first is the center of the circle and the second is some rando
     on the radius
 
     _shape_type should be circle (so far)"""
     def __init__(self, label_struct: dict):
+        super.__init__()
         try:
             self._name = label_struct.get('label')
             self._points = label_struct.get('points')
@@ -83,6 +85,20 @@ def plot_droplet_on_image(droplet: DropletLabel, img: np.ndarray):
     cv2.waitKey(0)
 
 
+def plot_all_droplets_on_image(droplet_list: list, img: np.ndarray):
+    # ensure image is in rgb so that colors are existing
+    assert len(img.shape) == 2 or len(img.shape) == 3
+
+    if len(img.shape) != 3:
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+
+    for droplet in droplets:
+        img = cv2.circle(img, center=droplet.center(), radius=droplet.radius(), color=(0, 0, 255), thickness=2)
+
+    cv2.imshow('droplet', img)
+    cv2.waitKey(0)
+
+
 
 
 if __name__ == '__main__':
@@ -92,10 +108,11 @@ if __name__ == '__main__':
     img = load_labelme_image(PATH)
     droplets = load_labelme_droplet_labels(PATH)
 
-    for d in droplets:
-        print(d)
-
-        plot_droplet_on_image(droplet=d, img=img)
+    plot_all_droplets_on_image(droplets, img)
+    # for d in droplets:
+    #     print(d)
+    #
+    #     plot_droplet_on_image(droplet=d, img=img)
 
     # img = load_labelme_image(PATH)
     # import PIL
