@@ -1,10 +1,10 @@
 import json
 import numpy as np
 # from image_utils import img_b64_to_arr
-import image_utils
+from helpers import image_utils
 import os
 import cv2
-from interfaces import ParticlePosition
+from helpers.interfaces import ParticlePosition
 
 
 def load_labelme_image(path2json: str) -> np.ndarray:
@@ -98,6 +98,16 @@ def plot_all_droplets_on_image(droplet_list: list, img: np.ndarray):
     cv2.imshow('droplet', img)
     cv2.waitKey(0)
 
+
+def plot_points_on_image(point_list: list, img: np.ndarray):
+    if len(img.shape) != 3:
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+
+    for pt in point_list:
+        img = cv2.circle(img, center=(pt[-1], pt[0]), radius=0, color=(0, 0, 255), thickness=10)
+
+    cv2.imshow('droplet', img)
+    cv2.waitKey()
 
 
 
