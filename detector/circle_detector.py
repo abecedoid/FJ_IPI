@@ -91,9 +91,9 @@ def detect_circles_labelme(img_path: str, DS_COEFF: int=4) -> (np.ndarray, np.nd
     return img, coords
 
 
-def detect_circles(img: np.ndarray, DS_COEFF: int=4,
-                   circle_mask_rad: int=7, circle_mask_wdth: int=1, circle_mask_radoff_size: int=13,
-                   pxcorr1: int=99, pxcorr2: int=99, peak_min_dist: int=10) -> np.ndarray:
+def detect_circles(img: np.ndarray, DS_COEFF: int = 4,
+                   circle_mask_rad: int = 7, circle_mask_wdth: int = 1, circle_mask_radoff_size: int = 13,
+                   pxcorr1: int = 99, pxcorr2: int = 99, peak_min_dist: int = 10) -> np.ndarray:
     """Returns ndarray of centers of detected circles [N X 2]"""
     # downsample
     print('original img res is: {}'.format(img.shape))

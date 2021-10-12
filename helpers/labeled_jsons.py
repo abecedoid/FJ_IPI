@@ -29,7 +29,9 @@ def load_labelme_droplet_labels(path2json: str) -> list:
     droplets = []
     for shape in shapes_data:
         try:
-            droplets.append(DropletLabel(label_struct=shape))
+            drop = DropletLabel.init_labelme(labelme_struct=shape)
+            droplets.append(drop)
+            # droplets.append(DropletLabel.init_labelme(labelme_struct=shape))
         except Exception as e:
             print('Failed to load DropletLabel from {} because {}'.format(shape, e))
 
@@ -42,27 +44,48 @@ class DropletLabel(ParticlePosition):
     on the radius
 
     _shape_type should be circle (so far)"""
-    def __init__(self, label_struct: dict):
-        super.__init__()
+    def __init__(self, center_pt: list, radius: int, name: str, shape_type: str = 'circle'):
+        super(DropletLabel, self).__init__()
         try:
-            self._name = label_struct.get('label')
-            self._points = label_struct.get('points')
-            if len(self._points) != 2:
-                raise ValueError
-            self._shape_type = label_struct.get('shape_type')
+            self._name = name
+            self._center = center_pt
+            self._radius = radius
+            # self._points = [center_pt, radius_pt]
+            # if len(self._points) != 2:
+            #     raise ValueError
+            self._shape_type = shape_type
         except Exception as e:
             raise ValueError
 
+    @classmethod
+    def init_labelme(cls, labelme_struct: dict):
+        name = labelme_struct.get('label')
+        points = labelme_struct.get('points')
+
+        pt1 = points[0]
+        pt2 = points[1]
+
+        # compute radius
+        radius = int(np.round(np.sqrt((pt2[0] - pt1[0])**2 + (pt2[1] - pt1[1])**2)))
+
+        return cls(center_pt=points[0], radius=radius, name=name)
+
     def center(self) -> tuple:
-        """returns a list of [x, y] denoting droplet's center"""
-        ctr_pt = [int(np.round(x)) for x in self._points[0]]
-        return tuple(ctr_pt)
+        """returns a tuple of [x, y] denoting droplet's center"""
+        # ctr_pt = [int(np.round(x)) for x in self._points[0]]
+        return self._center
+        # return tuple(ctr_pt)
 
     def radius(self) -> float:
         """returns radius of the droplet"""
-        pt1 = self._points[0]
-        pt2 = self._points[1]
-        return int(np.round(np.sqrt((pt2[0] - pt1[0])**2 + (pt2[1] - pt1[1])**2)))
+        return self._radius
+        # pt1 = self._points[0]
+        # pt2 = self._points[1]
+        # return int(np.round(np.sqrt((pt2[0] - pt1[0])**2 + (pt2[1] - pt1[1])**2)))
+
+    def area(self) -> float:
+        """returns area of the droplet"""
+        return np.pi * self.radius()**2
 
     def __str__(self):
         s = 'DropletLabel:\n'
