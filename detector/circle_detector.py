@@ -126,74 +126,6 @@ def detect_circles(img: np.ndarray, DS_COEFF: int=4,
     return coords
 
 
-# from helpers.labeled_jsons import load_labelme_image
-# #
-# path = '../resources/105mm_60deg.6mt18gqf.000099.json'
-# path = os.path.abspath(os.path.join(os.getcwd(), path))
-# print('path is: {}'.format(path))
-# img = load_labelme_image(path2json=path)
-# DS_COEFF = 4
-# print('original img res is: {}'.format(img.shape))
-# new_res = [round(x/4) for x in img.shape]
-# new_res.reverse()                                           # cv2 is [height, width] dims!
-#
-# # img_ds = resize_image(img, new_res)
-# img_ds = cv2.resize(img, new_res, interpolation=cv2.INTER_AREA)
-# print('resized image size is {}'.format(new_res))
-# # img[img < 20] = 0
-# # img = cv2.equalizeHist(img)
-# # img = cv2.convertScaleAbs(img, alpha=1.3, beta=40)
-#
-# plt.figure()
-# plt.subplot(121)
-# plt.imshow(img)
-# plt.subplot(122)
-# plt.imshow(img_ds)
-# plt.show()
-
-
-# DS image
-
-
-# img = cv2.resize(img, (256, 320))
-# plt.imshow(img)
-# plt.show()
-
-# print('image resolution is {} x {}'.format(img.shape[0], img.shape[1]))
-
-# get mask
-# mask = create_circular_mask(h=20, w=20, radius=7, circle_width=1)
-
-# plt.imshow(mask)
-# plt.show()
-
-# corr = normxcorr2(mask, img_ds, mode='same')
-# p95 = np.percentile(corr[:], 99)
-# corr[corr < p95] = 0
-# corr = corr * 255
-# print(corr.shape)
-
-# corr = corr.astype(np.uint8)
-# corr = cv2.medianBlur(corr, 1)
-
-# correlate with gaussian
-
-
-# corr2 = signal.correlate2d(corr, gaussian_kernel(), mode='same')
-# p95 = np.percentile(corr2[:], 99)
-# corr2[corr2 < p95] = 0
-# print(corr2.shape)
-# # corr2 = corr2[11:-11, 11:-11]
-#
-# coords = ftr.peak_local_max(corr2, min_distance=10)
-#
-# # de-downsample coords (ndarray (N, 2))
-# coords = coords * DS_COEFF
-#
-# from helpers.labeled_jsons import plot_points_on_image
-# img = plot_points_on_image(coords, img)
-
-
 if __name__ == '__main__':
     # demicko
     path = '../resources/105mm_60deg.6mt18gqf.000099.json'
@@ -202,14 +134,5 @@ if __name__ == '__main__':
     img, coords = detect_circles_labelme(img_path=path)
 
     plot_points_on_image(coords, img)
-
-    # plt.figure()
-    # plt.subplot(131)
-    # plt.imshow(corr)
-    # plt.subplot(132)
-    # plt.imshow(img_ds)
-    # plt.subplot(133)
-    # plt.imshow(corr2)
-    # plt.show()
 
 
