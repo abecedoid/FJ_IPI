@@ -64,7 +64,24 @@ if __name__ == '__main__':
 
         img = load_labelme_image(impath)
         gt_droplets = load_labelme_droplet_labels(impath)
-        coords = detect_circles(img, debug=True)
+
+        # plt.figure()
+        # plt.subplot(121)
+        # plt.imshow(img)
+
+        # PREPROCESSING - JUST FOR NOW
+        # bckg_thr = 20
+        # alpha = 1.8
+        # beta = 40
+        # img[img < bckg_thr] = 0
+        # # img = cv2.equalizeHist(img)
+        # img = cv2.convertScaleAbs(img, alpha=alpha, beta=beta)
+
+        # plt.subplot(122)
+        # plt.imshow(img)
+        # plt.show()
+
+        coords = detect_circles(img, debug=False)
 
         ious = []
         det_droplets = []
@@ -78,13 +95,12 @@ if __name__ == '__main__':
                 ious.append(circ_intersection_over_union(truth=gt_drop, det=det_drop))
 
         plot_dict = {'gt': gt_droplets, 'det': det_droplets}
+        print('sum of ious: {}'.format(sum(ious)))
         plot_multiple_droplet_lists_on_image(plot_dict, img)
 
         # plt.figure()
         # plt.plot(ious)
         # plt.show()
-        # print('sum of ious: {}'.format(sum(ious)))
-
 
 
     # SHOW_IMAGES = True
