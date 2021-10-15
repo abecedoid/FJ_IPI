@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import math
 from detector.circle_detector import detect_circles_labelme, detect_circles
@@ -48,38 +50,65 @@ def circ_intersection_over_union(truth: DropletLabel, det: DropletLabel):
     iou = intersection / union
     return iou
 
-def find_closest_point(point: np.ndarray, points: np.ndarray):
-    """"""
-    pass
-
-# def closest_node(node, nodes):
-#     nodes = np.asarray(nodes)
-#     dist_2 = np.sum((nodes - node)**2, axis=1)
-#     return np.argmin(dist_2)
-
 
 if __name__ == '__main__':
 
+    SHOW_IMAGES = True
+    DIRPATH = '../resources/105mm_60deg.6mxcodhz.000000'
+    DIRPATH = os.path.abspath(DIRPATH)
+    imfnames = os.listdir(DIRPATH)
 
-    PATH = '..//resources//105mm_60deg.6mt18gqf.000099.json'
-    img = load_labelme_image(PATH)
-    gt_droplets = load_labelme_droplet_labels(PATH)
-    coords = detect_circles(img)
+    for imfname in imfnames:
 
-    ious = []
+        impath = os.path.join(DIRPATH, imfname)
 
-    for gt_drop in gt_droplets:
+        img = load_labelme_image(impath)
+        gt_droplets = load_labelme_droplet_labels(impath)
+        coords = detect_circles(img)
 
-        # make coords to dropletLabels
-        for i, coord in enumerate(coords):
-            name = 'detection_{}'.format(i)
-            det_drop = DropletLabel(center_pt=coord, radius=52, name=name)
+        ious = []
+        det_droplets = []
+        for gt_drop in gt_droplets:
 
-            ious.append(circ_intersection_over_union(truth=gt_drop, det=det_drop))
+            # make coords to dropletLabels
+            for i, coord in enumerate(coords):
+                name = 'detection_{}'.format(i)
+                det_drop = DropletLabel(center_pt=coord, radius=52, name=name)
+                det_droplets.append(det_drop)
+                ious.append(circ_intersection_over_union(truth=gt_drop, det=det_drop))
+
+        plot_dict = {'gt': gt_droplets, 'det': det_droplets}
+        plot_multiple_droplet_lists_on_image(plot_dict, img)
+
+        # plt.figure()
+        # plt.plot(ious)
+        # plt.show()
+        # print('sum of ious: {}'.format(sum(ious)))
 
 
-    plt.figure()
-    plt.plot(ious)
-    plt.show()
-    print('sum of ious: {}'.format(sum(ious)))
+
+    # SHOW_IMAGES = True
+    # PATH = '..//resources//105mm_60deg.6mt18gqf.000099.json'
+    # img = load_labelme_image(PATH)
+    # gt_droplets = load_labelme_droplet_labels(PATH)
+    # coords = detect_circles(img)
+    #
+    # ious = []
+    # det_droplets = []
+    # for gt_drop in gt_droplets:
+    #
+    #     # make coords to dropletLabels
+    #     for i, coord in enumerate(coords):
+    #         name = 'detection_{}'.format(i)
+    #         det_drop = DropletLabel(center_pt=coord, radius=52, name=name)
+    #         det_droplets.append(det_drop)
+    #         ious.append(circ_intersection_over_union(truth=gt_drop, det=det_drop))
+    #
+    # plot_dict = {'gt': gt_droplets, 'det': det_droplets}
+    # plot_multiple_droplet_lists_on_image(plot_dict, img)
+    #
+    # plt.figure()
+    # plt.plot(ious)
+    # plt.show()
+    # print('sum of ious: {}'.format(sum(ious)))
 

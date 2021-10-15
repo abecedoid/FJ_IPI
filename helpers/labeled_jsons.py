@@ -48,7 +48,7 @@ class DropletLabel(ParticlePosition):
         super(DropletLabel, self).__init__()
         try:
             self._name = name
-            self._center = center_pt
+            self._center = [int(np.round(x)) for x in center_pt]
             self._radius = radius
             # self._points = [center_pt, radius_pt]
             # if len(self._points) != 2:
@@ -108,7 +108,7 @@ def plot_droplet_on_image(droplet: DropletLabel, img: np.ndarray):
     cv2.waitKey(0)
 
 
-def plot_all_droplets_on_image(droplet_list: list, img: np.ndarray):
+def plot_droplet_list_on_image(droplet_list: list, img: np.ndarray):
     # ensure image is in rgb so that colors are existing
     assert len(img.shape) == 2 or len(img.shape) == 3
 
@@ -120,6 +120,29 @@ def plot_all_droplets_on_image(droplet_list: list, img: np.ndarray):
 
     cv2.imshow('droplet', img)
     cv2.waitKey(0)
+
+
+def plot_multiple_droplet_lists_on_image(dict_of_lists: dict, img: np.ndarray):
+    # maximum 3 sets of droplets can be plotted so far...
+    assert len(dict_of_lists.keys()) <= 3
+    # ensure image is in rgb so that colors are existing
+    assert len(img.shape) == 2 or len(img.shape) == 3
+    if len(img.shape) != 3:
+        img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
+
+    COLORS = ((0, 0, 255), (0, 255, 0), (255, 0, 0))
+
+    for i, key in enumerate(dict_of_lists.keys()):
+        droplets = dict_of_lists[key]
+
+        for droplet in droplets:
+            img = cv2.circle(img, center=droplet.center(), radius=droplet.radius(), color=COLORS[i], thickness=2)
+
+    cv2.namedWindow('droplets', cv2.WINDOW_NORMAL)
+    cv2.imshow('droplets', img)
+    cv2.waitKey(0)
+    # cv2.imshow('droplets', img)
+    # cv2.waitKey(0)
 
 
 def plot_points_on_image(point_list: list, img: np.ndarray):
@@ -141,7 +164,7 @@ if __name__ == '__main__':
     img = load_labelme_image(PATH)
     droplets = load_labelme_droplet_labels(PATH)
 
-    plot_all_droplets_on_image(droplets, img)
+    plot_droplet_list_on_image(droplets, img)
     # for d in droplets:
     #     print(d)
     #
