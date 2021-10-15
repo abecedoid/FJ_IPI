@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
         img = load_labelme_image(impath)
         gt_droplets = load_labelme_droplet_labels(impath)
-        coords = detect_circles(img)
+        coords = detect_circles(img, debug=True)
 
         ious = []
         det_droplets = []
@@ -73,7 +73,7 @@ if __name__ == '__main__':
             # make coords to dropletLabels
             for i, coord in enumerate(coords):
                 name = 'detection_{}'.format(i)
-                det_drop = DropletLabel(center_pt=coord, radius=52, name=name)
+                det_drop = DropletLabel(center_pt=coord, radius=30, name=name)
                 det_droplets.append(det_drop)
                 ious.append(circ_intersection_over_union(truth=gt_drop, det=det_drop))
 

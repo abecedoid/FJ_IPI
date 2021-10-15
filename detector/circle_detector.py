@@ -84,6 +84,32 @@ def gaussian_kernel(l=5, sig=3):
     return kernel / np.sum(kernel)
 
 
+def find_peaks2d(arr: np.ndarray, max_min_neighborhood_size: int, threshold: float) -> np.ndarray:
+    # todo - rewrite the loop so that its faster
+    """Applies maximum filter for given area, then creates bool array with true values, where
+    the maxima lay in the original image.
+    Applies minimum filter to the original image and creates a difference image between max and min image
+    Detected peaks are located where the difference between the min and max image is smaller than threshold
+
+    returns ndarray [N x 2] containing the x, y coords of the peaks"""
+    data_max = nd.maximum_filter(arr, max_min_neighborhood_size)
+    maxima = (arr == data_max)
+    data_min = nd.minimum_filter(arr, max_min_neighborhood_size)
+    diff = ((data_max - data_min) > threshold)
+    maxima[diff == 0] = 0
+
+    labeled, num_objects = nd.label(maxima)
+    slices = nd.find_objects(labeled)
+    coords = np.zeros((len(slices), 2))
+    for i, (dy, dx) in enumerate(slices):
+        x_center = (dx.start + dx.stop - 1) / 2
+        coords[i, 0] = x_center
+        y_center = (dy.start + dy.stop - 1) / 2
+        coords[i, 1] = y_center
+
+    return coords
+
+
 def detect_circles_labelme(img_path: str, DS_COEFF: int=4) -> (np.ndarray, np.ndarray):
     """Just a convenience wrapper for the labelme format jsons"""
     img = load_labelme_image(img_path)
@@ -91,9 +117,9 @@ def detect_circles_labelme(img_path: str, DS_COEFF: int=4) -> (np.ndarray, np.nd
     return img, coords
 
 
-def detect_circles(img: np.ndarray, DS_COEFF: int = 4,
-                   circle_mask_rad: int = 7, circle_mask_wdth: int = 1, circle_mask_radoff_size: int = 13,
-                   pxcorr1: int = 99, pxcorr2: int = 99, peak_min_dist: int = 10) -> np.ndarray:
+def detect_circles(img: np.ndarray, DS_COEFF: int = 2,
+                   circle_mask_rad: int = 15, circle_mask_wdth: int = None, circle_mask_radoff_size: int = 5,
+                   pxcorr1: int = 90, pxcorr2: int = 95, peak_min_dist: int = 7, debug=False) -> np.ndarray:
     """Returns ndarray of centers of detected circles [N X 2]"""
     # downsample
     print('original img res is: {}'.format(img.shape))
@@ -104,7 +130,7 @@ def detect_circles(img: np.ndarray, DS_COEFF: int = 4,
     print('resized image size is {}'.format(new_res))
 
     # get circle mask for xcorr
-    side_size = circle_mask_rad + circle_mask_radoff_size
+    side_size = 2 * circle_mask_rad + circle_mask_radoff_size
     mask = create_circular_mask(h=side_size, w=side_size, radius=circle_mask_rad, circle_width=circle_mask_wdth)
 
     # first correlation
@@ -117,8 +143,23 @@ def detect_circles(img: np.ndarray, DS_COEFF: int = 4,
     p95 = np.percentile(corr2[:], pxcorr2)
     corr2[corr2 < p95] = 0
 
-    # retrieve some peak coordinates
-    coords = ftr.peak_local_max(corr2, min_distance=peak_min_dist)
+    coords = find_peaks2d(arr=corr2, max_min_neighborhood_size=int(circle_mask_rad), threshold=0.00001)
+
+    if debug:
+        plt.figure()
+        plt.subplot(221)
+        plt.imshow(corr)
+        plt.subplot(222)
+        plt.imshow(corr2)
+        plt.scatter(coords[:, 0], coords[:, 1], color='r', s=1)
+        plt.subplot(223)
+        plt.imshow(img_ds)
+        plt.scatter(coords[:, 0], coords[:, 1], color='r', s=1)
+        plt.subplot(224)
+        plt.imshow(corr2)
+        plt.scatter(coords[:, 0], coords[:, 1], color='r', s=1)
+
+        plt.show()
 
     # de-downsample coords (ndarray (N, 2))
     coords = coords * DS_COEFF
@@ -132,6 +173,8 @@ if __name__ == '__main__':
     path = os.path.abspath(os.path.join(os.getcwd(), path))
 
     img, coords = detect_circles_labelme(img_path=path)
+
+    print(coords)
 
     plot_points_on_image(coords, img)
 
