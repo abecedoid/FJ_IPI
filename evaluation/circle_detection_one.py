@@ -59,19 +59,22 @@ if __name__ == '__main__':
     PATH = '..//resources//only_one.png'
     # image = Image.open(PATH)
     img = np.array(Image.open(PATH).convert('L'))
-    # img = np.asarray(image)
-    # img = load_labelme_image(PATH)
-    # gt_droplets = load_labelme_droplet_labels(PATH)
-    coords = detect_circles(img, debug=True)
+    coords = detect_circles(img, circle_mask_rad=20, pxcorr1=99.5,
+                            pxcorr2=99.5, debug=True)
 
     det_droplets = []
 
     # make coords to dropletLabels
     for i, coord in enumerate(coords):
         name = 'detection_{}'.format(i)
-        det_drop = DropletLabel(center_pt=coord, radius=52, name=name)
+        det_drop = DropletLabel(center_pt=coord, radius=40, name=name)
         det_droplets.append(det_drop)
 
     plot_dict = {'det': det_droplets}
     plot_multiple_droplet_lists_on_image(plot_dict, img)
+
+    print(det_drop)
+
+    # try to extarct the image slice
+    print('hehe')
 

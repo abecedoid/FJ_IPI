@@ -143,7 +143,7 @@ def detect_circles(img: np.ndarray, DS_COEFF: int = 2,
     p95 = np.percentile(corr2[:], pxcorr2)
     corr2[corr2 < p95] = 0
 
-    coords = find_peaks2d(arr=corr2, max_min_neighborhood_size=int(circle_mask_rad), threshold=0.00001)
+    coords = find_peaks2d(arr=corr2, max_min_neighborhood_size=2 * int(circle_mask_rad), threshold=0.00001)
 
     if debug:
         plt.figure()
