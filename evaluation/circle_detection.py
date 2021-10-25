@@ -1,11 +1,11 @@
 import os
-
 import numpy as np
 import math
 from detector.circle_detector import detect_circles_labelme, detect_circles
 from detector.fringe import get_droplet_slices_from_img
 from helpers.labeled_jsons import *
 import matplotlib.pyplot as plt
+import pickle
 
 
 def two_circle_area_intersection(c1: DropletLabel, c2: DropletLabel) -> float:
@@ -98,6 +98,10 @@ if __name__ == '__main__':
                 ious.append(circ_intersection_over_union(truth=gt_drop, det=det_drop))
 
         plot_dict = {'gt': gt_droplets, 'det': det_droplets}
+
+        with open('gt_det_droplets.pkl', 'wb') as f:
+            pickle.dump(plot_dict, f)
+
         print('sum of ious: {}'.format(sum(ious)))
         plot_multiple_droplet_lists_on_image(plot_dict, img)
 

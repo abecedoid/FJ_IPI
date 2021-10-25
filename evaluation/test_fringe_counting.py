@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from detector.circle_detector import find_peaks2d
 
 
+
 if __name__ == '__main__':
 
     DIRPATH = '../resources/105mm_60deg.6mxcodhz.000000'
