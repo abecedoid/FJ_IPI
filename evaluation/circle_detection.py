@@ -84,8 +84,6 @@ if __name__ == '__main__':
 
         coords = detect_circles(img, debug=False)
 
-
-
         ious = []
         det_droplets = []
         for gt_drop in gt_droplets:
