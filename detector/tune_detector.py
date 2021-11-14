@@ -4,10 +4,8 @@ from helpers.labeled_jsons import plot_multiple_droplet_lists_on_image
 from scipy.spatial.distance import cdist
 import pickle
 import os
-from pprint import pprint
 from detector.circle_detector import detect_circles_labelme_input, detect_circles
 from evaluation.eval_result import DetectionEvaluator, ConfusionMatrix
-from matplotlib import pyplot as plt
 
 dsettings_normal = {
     'ds_coeff': 2,
@@ -21,58 +19,14 @@ dsettings_normal = {
     'debug': True
 }
 
-dsettings_tune = {
-    'ds_coeff': 2,
-    'circle_mask_rad': 30,
-    'circle_mask_wdth': None,
-    'circle_mask_radoff_size': 5,
-    'pxcorr1': 90,
-    'pxcorr2': 90,
-    'peakfind_thr': 0.1,
-    'peakfind_min_max_nghbr': 30,
-    'debug': False
-}
-
 if __name__ == '__main__':
-    s = dsettings_tune
+    s = dsettings_normal
     IMPATH = '../resources/105mm_60deg.6mxcodhz.000000/105mm_60deg.6mxcodhz.000000.json'
     img = load_labelme_image(IMPATH)
     gt_droplets = load_labelme_droplet_labels(IMPATH)
+
+    # img, coords = detect_circles_labelme_input(img_path=IMPATH)
     img = load_labelme_image(IMPATH)
-
-    # FIND KNEE
-    # precisions = []
-    # recalls = []
-    # set2pr = {}
-    # for k in range(50):
-    #     coords = detect_circles(img, DS_COEFF=s['ds_coeff'],
-    #                             circle_mask_rad=s['circle_mask_rad'],
-    #                             circle_mask_wdth=s['circle_mask_wdth'],
-    #                             circle_mask_radoff_size=s['circle_mask_radoff_size'],
-    #                             pxcorr1=s['pxcorr1'], pxcorr2=s['pxcorr2'],
-    #                             peakfind_thr=s['peakfind_thr'],
-    #                             peakfind_min_max_nghbr=s['peakfind_min_max_nghbr'],
-    #                             debug=s['debug'])
-    #
-    #     det_droplets = coords2droplet_labels_list(coords, circle_radius=30)
-    #
-    #     devaluator = DetectionEvaluator(detections=det_droplets, labeled=gt_droplets, image=img)
-    #     devaluator.evaluate()
-    #     precisions.append(devaluator.confusion_mat.precision())
-    #     recalls.append(devaluator.confusion_mat.recall())
-    #     set2pr[s['circle_mask_rad']] = (precisions[-1], recalls[-1], precisions[-1] + recalls[-1])
-    #     s['circle_mask_rad'] += 1
-    #     # print(devaluator.confusion_mat)
-    #
-    # # find the
-    # pprint(set2pr)
-    #
-    # plt.figure()
-    # plt.plot(recalls, precisions)
-    # plt.show()
-
-    # SHOW ONE EXAMPLE
-
     coords = detect_circles(img, DS_COEFF=s['ds_coeff'],
                             circle_mask_rad=s['circle_mask_rad'],
                             circle_mask_wdth=s['circle_mask_wdth'],

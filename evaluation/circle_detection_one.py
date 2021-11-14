@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 import math
-from detector.circle_detector import detect_circles_labelme, detect_circles
+from detector.circle_detector import detect_circles_labelme_input, detect_circles
 from helpers.labeled_jsons import *
 import matplotlib.pyplot as plt
 

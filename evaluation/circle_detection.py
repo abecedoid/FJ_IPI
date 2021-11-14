@@ -1,7 +1,7 @@
 import os
 import numpy as np
 import math
-from detector.circle_detector import detect_circles_labelme, detect_circles
+from detector.circle_detector import detect_circles_labelme_input, detect_circles
 from detector.fringe import get_droplet_slices_from_img
 from helpers.labeled_jsons import *
 import matplotlib.pyplot as plt
@@ -82,8 +82,8 @@ if __name__ == '__main__':
         # plt.imshow(img)
         # plt.show()
 
-        coords = detect_circles(img, debug=False)
-
+        coords = detect_circles(img, debug=True, circle_mask_rad=20)
+        print(coords)
         ious = []
         det_droplets = []
         for gt_drop in gt_droplets:

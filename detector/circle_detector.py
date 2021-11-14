@@ -95,7 +95,11 @@ def find_peaks2d(arr: np.ndarray, max_min_neighborhood_size: int, threshold: flo
     data_max = nd.maximum_filter(arr, max_min_neighborhood_size)
     maxima = (arr == data_max)
     data_min = nd.minimum_filter(arr, max_min_neighborhood_size)
-    diff = ((data_max - data_min) > threshold)
+    maxmmin = (data_max - data_min)
+    maxmmin = maxmmin / np.max(maxmmin[:])
+    diff = (maxmmin > threshold)
+    # diff = ((data_max - data_min) > threshold)
+
     maxima[diff == 0] = 0
 
     labeled, num_objects = nd.label(maxima)
@@ -110,7 +114,7 @@ def find_peaks2d(arr: np.ndarray, max_min_neighborhood_size: int, threshold: flo
     return coords
 
 
-def detect_circles_labelme(img_path: str, DS_COEFF: int=4) -> (np.ndarray, np.ndarray):
+def detect_circles_labelme_input(img_path: str, DS_COEFF: int=4) -> (np.ndarray, np.ndarray):
     """Just a convenience wrapper for the labelme format jsons"""
     img = load_labelme_image(img_path)
     coords = detect_circles(img, DS_COEFF)
@@ -118,19 +122,25 @@ def detect_circles_labelme(img_path: str, DS_COEFF: int=4) -> (np.ndarray, np.nd
 
 
 def detect_circles(img: np.ndarray, DS_COEFF: int = 2,
-                   circle_mask_rad: int = 15, circle_mask_wdth: int = None, circle_mask_radoff_size: int = 5,
-                   pxcorr1: int = 95, pxcorr2: int = 95, peak_min_dist: int = 7, debug=False) -> np.ndarray:
+                   circle_mask_rad: int = 30, circle_mask_wdth: int = None, circle_mask_radoff_size: int = 5,
+                   pxcorr1: int = 95, pxcorr2: int = 95,
+                   peakfind_thr: float = 0.1, peakfind_min_max_nghbr: int = 5,
+                   debug=False) -> np.ndarray:
     """Returns ndarray of centers of detected circles [N X 2]"""
     # downsample
-    print('original img res is: {}'.format(img.shape))
     new_res = [round(x / DS_COEFF) for x in img.shape]
     new_res.reverse()  # cv2 is [height, width] dims!
 
     img_ds = cv2.resize(img, new_res, interpolation=cv2.INTER_AREA)
-    print('resized image size is {}'.format(new_res))
+    if debug:
+        print('original img res is: {}'.format(img.shape))
+        print('resized image size is {}'.format(new_res))
 
     # get circle mask for xcorr
+    circle_mask_rad = round(circle_mask_rad / 2)    # this for some reason...
     side_size = 2 * circle_mask_rad + circle_mask_radoff_size
+    # side_size = int(np.ceil(((2 * circle_mask_rad) / DS_COEFF) + circle_mask_radoff_size))
+    print('side size:{}'.format(side_size))
     mask = create_circular_mask(h=side_size, w=side_size, radius=circle_mask_rad, circle_width=circle_mask_wdth)
 
     # first correlation
@@ -143,7 +153,8 @@ def detect_circles(img: np.ndarray, DS_COEFF: int = 2,
     p95 = np.percentile(corr2[:], pxcorr2)
     corr2[corr2 < p95] = 0
 
-    coords = find_peaks2d(arr=corr2, max_min_neighborhood_size=2 * int(circle_mask_rad), threshold=0.00001)
+    coords = find_peaks2d(arr=corr2, max_min_neighborhood_size=peakfind_min_max_nghbr, threshold=peakfind_thr)
+    # coords = find_peaks2d(arr=corr2, max_min_neighborhood_size=2 * int(circle_mask_rad), threshold=peakfind_thr)
 
     if debug:
         plt.figure()
@@ -169,13 +180,24 @@ def detect_circles(img: np.ndarray, DS_COEFF: int = 2,
 
 if __name__ == '__main__':
     # demicko
-    path = '../resources/105mm_60deg.6mt18gqf.000099.json'
+    path = '../resources/105mm_60deg.6mxcodhz.000000/105mm_60deg.6mxcodhz.000000.json'
+    # path = '../resources/105mm_60deg.6mt18gqf.000099.json'
     path = os.path.abspath(os.path.join(os.getcwd(), path))
 
-    img, coords = detect_circles_labelme(img_path=path)
+    img = load_labelme_image(path)
+    from helpers.labeled_jsons import load_labelme_droplet_labels, coords2droplet_labels_list, plot_multiple_droplet_lists_on_image
+    gt_droplets = load_labelme_droplet_labels(path)
 
+    coords = detect_circles(img, debug=True, circle_mask_rad=30)
+    det_droplets = coords2droplet_labels_list(coords, circle_radius=30)
     print(coords)
+    plot_dict = {'gt': gt_droplets, 'det': det_droplets}
+    plot_multiple_droplet_lists_on_image(plot_dict, img)
 
-    plot_points_on_image(coords, img)
+    # img, coords = detect_circles_labelme_input(img_path=path)
+    #
+    # print(coords)
+    #
+    # plot_points_on_image(coords, img)
 
 

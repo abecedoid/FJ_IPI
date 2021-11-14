@@ -95,6 +95,13 @@ class DropletLabel(ParticlePosition):
         return s
 
 
+def plot_image(img: np.ndarray) -> None:
+    """plots image"""
+    cv2.namedWindow('droplets', cv2.WINDOW_NORMAL)
+    cv2.imshow('droplets', img)
+    cv2.waitKey()
+
+
 def plot_droplet_on_image(droplet: DropletLabel, img: np.ndarray):
     """plots single droplet on a given image"""
     # ensure image is in rgb so that colors are existing
@@ -150,10 +157,22 @@ def plot_points_on_image(point_list: list, img: np.ndarray):
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
     for pt in point_list:
-        img = cv2.circle(img, center=(pt[-1], pt[0]), radius=0, color=(0, 0, 255), thickness=10)
+        img = cv2.circle(img, center=(int(pt[-1]), int(pt[0])), radius=0, color=(0, 0, 255), thickness=10)
 
     cv2.imshow('droplet', img)
     cv2.waitKey()
+
+
+def coords2droplet_labels_list(coords: np.ndarray, circle_radius: int) -> list:
+    """Takes ndarray of centers of detected circles [N X 2] and converts it to a list of droplet labels"""
+    droplets = []
+
+    for i, coord in enumerate(coords):
+        name = 'detection_{}'.format(i)
+        det_drop = DropletLabel(center_pt=coord, radius=circle_radius, name=name)
+        droplets.append(det_drop)
+
+    return droplets
 
 
 
