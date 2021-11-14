@@ -33,6 +33,7 @@ def load_labelme_droplet_labels(path2json: str) -> list:
             droplets.append(drop)
             # droplets.append(DropletLabel.init_labelme(labelme_struct=shape))
         except Exception as e:
+            droplets.append(None)
             print('Failed to load DropletLabel from {} because {}'.format(shape, e))
 
     return droplets
@@ -47,12 +48,10 @@ class DropletLabel(ParticlePosition):
     def __init__(self, center_pt: list, radius: int, name: str, shape_type: str = 'circle'):
         super(DropletLabel, self).__init__()
         try:
-            self._name = name
+            self.name = name
             self._center = [int(np.round(x)) for x in center_pt]
             self._radius = radius
-            # self._points = [center_pt, radius_pt]
-            # if len(self._points) != 2:
-            #     raise ValueError
+            self.fringe_count = None
             self._shape_type = shape_type
         except Exception as e:
             raise ValueError
@@ -89,10 +88,20 @@ class DropletLabel(ParticlePosition):
 
     def __str__(self):
         s = 'DropletLabel:\n'
-        s += 'Name: {} \n'.format(self._name)
+        s += 'Name: {} \n'.format(self.name)
         s += 'Center: {} \n'.format(self.center())
         s += 'Radius: {} \n'.format(self.radius())
+        s += 'Fringe count: {} \n'.format(self.fringe_count)
         return s
+
+    def json(self):
+        d = {}
+        d['name'] = self.name
+        d['center'] = self.center()
+        d['radius'] = self.radius()
+        d['fringe_count'] = self.fringe_count
+        d['shape'] = self._shape_type
+        return d
 
 
 def plot_image(img: np.ndarray) -> None:
