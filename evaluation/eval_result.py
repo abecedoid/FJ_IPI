@@ -10,17 +10,16 @@ import os
 # do the preprocessing, radius and the fine tuning of the parameters...:/
 
 
-class MultipleImageEvaluationResult(dict):
-    """Holds information concerning results of multiple images and their detections"""
-    def __init__(self):
-        super(MultipleImageEvaluationResult, self).__init__()
-        # todo
-        pass
-
-
+# class MultipleImageEvaluationResult(dict):
+#     """Holds information concerning results of multiple images and their detections"""
+#     def __init__(self):
+#         super(MultipleImageEvaluationResult, self).__init__()
+#         # todo
+#         pass
 
 
 class DetectionEvaluator(object):
+    """Takes the ground truth and detections and evaluates the detection performance"""
     def __init__(self, detections: list, labeled: list, image: np.ndarray):
         """both detections and labeled lists are lists of DropletLabels"""
         self._dl_dets = detections
@@ -37,18 +36,7 @@ class DetectionEvaluator(object):
         self.confusion_mat = ConfusionMatrix(gt_labels=self._dl_labeled,
                                              det_labels=self._dl_dets,
                                              gt2dets=self._labels2dets)
-        print(self.confusion_mat)
-
-        # detection_res = ImageDetectionResult()
-        # detection_res['N_gt_labels'] = len(self._dl_labeled)
-        # detection_res['N_det_labels'] = len(self._dl_dets)
-        # detection_res['N_pairs_found'] = len(self._labels2dets.keys())
-        # detection_res['N_pairs_found_perc'] = (detection_res['N_pairs_found'] / detection_res['N_gt_labels']) * 100
-        # # dete[]
-        #
-        # distances = []
-        # [distances.append(self._labels2dets[entry_key]['dist']) for entry_key in self._labels2dets]
-        # detection_res[] = np.array(distances)
+        # print(self.confusion_mat)
 
     def _pair_detections_labels(self):
         # todo - add score of the detection - basically the distance, right?
@@ -149,11 +137,17 @@ class ConfusionMatrix(dict):
         self['TN'] = 0      # todo, really??
         self['FN'] = len(self._gt_labels) - self['TP']
 
+    def precision(self):
+        return self['TP'] / (self['TP'] + self['FP'])
+
+    def recall(self):
+        return self['TP'] / (self['TP'] + self['FN'])
+
     def sensitivity(self):
         return self['TP'] / (self['TP'] + self['FN'])
 
     def specificity(self):
-        return  self['TN'] / (self['TN'] + self['FP'])
+        return self['TN'] / (self['TN'] + self['FP'])
 
     def accuracy(self):
         return (self['TP'] + self['TN']) / len(self._gt_labels)
@@ -164,35 +158,39 @@ class ConfusionMatrix(dict):
         s += '|FP: {}\t|TN: {}\t\t|\n'.format(self['FP'], self['TN'])
         s += '--------------\n'
         s += 'Sensitivity: {}\n'.format(self.sensitivity())
-        s += 'Specificity: {}\n'.format(self.specificity())
-        s += 'Accuracy: {}\n'.format(self.accuracy())
+        s += 'Precision: {}\n'.format(self.precision())
+        s += 'Recall: {}\n'.format(self.recall())
+        s += 'Precision/Recall: {}\n'.format((self.precision() / self.recall()))
+        # s += 'Specificity: {}\n'.format(self.specificity())
+        # s += 'Accuracy: {}\n'.format(self.accuracy())
         s += '===============\n'
         return s
 
 
 
-class ImageDetectionResult(dict):
-    def __init__(self):
-        """Holds information about the success of detection of one image"""
-        super(ImageDetectionResult, self).__init__()
-        self['N_gt_labels'] = None          # total number of labels to be found
-        self['N_det_labels'] = None         # total number of labels detected
-        self['N_pairs_found'] = None        # total number of labels successfully paired
-        self['N_pairs_found_perc'] = None   # total number of labels successfully paired in percents
-        self['correct_det_perc'] = None     # ratio of correctly detected to incorrectly detected
-        self['pairs_distances'] = None      # vector of distances between gt labels and detected labels (only for pairs)
+# class ImageDetectionResult(dict):
+#     def __init__(self):
+#         """Holds information about the success of detection of one image"""
+#         super(ImageDetectionResult, self).__init__()
+#         self['N_gt_labels'] = None          # total number of labels to be found
+#         self['N_det_labels'] = None         # total number of labels detected
+#         self['N_pairs_found'] = None        # total number of labels successfully paired
+#         self['N_pairs_found_perc'] = None   # total number of labels successfully paired in percents
+#         self['correct_det_perc'] = None     # ratio of correctly detected to incorrectly detected
+#         self['pairs_distances'] = None      # vector of distances between gt labels and detected labels (only for pairs)
+#
+#     def __str__(self):
+#         s = ''
+#         s += 'GT labels: {}\n'.format(self['N_gt_labels'])
+#         s += 'Detected labels: {}\n'.format(self['N_det_labels'])
+#         s += 'Pairs found: {} ({} %)\n'.format(self['N_pairs_found'], self['N_pairs_found_perc'])
+#         s += 'Detected labels - correct {} / incorrect {} ({} %)\n'.format(self['N_pairs_found'], self['N_pairs_found_perc'])
+#
+#         s += "Distances - mean: {}, std: {}\n".format(self['pairs_distances'].mean(),
+#                                                       self['pairs_distances'].std())
+#
+#         return s
 
-    def __str__(self):
-        s = ''
-        s += 'GT labels: {}\n'.format(self['N_gt_labels'])
-        s += 'Detected labels: {}\n'.format(self['N_det_labels'])
-        s += 'Pairs found: {} ({} %)\n'.format(self['N_pairs_found'], self['N_pairs_found_perc'])
-        s += 'Detected labels - correct {} / incorrect {} ({} %)\n'.format(self['N_pairs_found'], self['N_pairs_found_perc'])
-
-        s += "Distances - mean: {}, std: {}\n".format(self['pairs_distances'].mean(),
-                                                      self['pairs_distances'].std())
-
-        return s
 
 if __name__ == '__main__':
     IMPATH = '../resources/105mm_60deg.6mxcodhz.000000/105mm_60deg.6mxcodhz.000000.json'
