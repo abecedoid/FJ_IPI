@@ -54,6 +54,10 @@ for k, jpath in enumerate(LM_PATHS):
             ds = droplet_slice_from_image(img, det_droplet)
             n_fringes, DS, pk_coords = count_fringes(ds)
             det_droplet.fringe_count = n_fringes
+        except SliceOutOfBoundsError as se:
+            print('Slice is out of bounds, cannot count fringes on incomplete circle')
+            continue
+        # else:
         except Exception as e:
             print('Fringe count failed on a droplet {}, because {}'.format(det_droplet.name, e))
             continue
@@ -66,7 +70,7 @@ for k, jpath in enumerate(LM_PATHS):
                              'det': det_droplets_json}
 
 with open('det_output.json', 'w') as f:
-    json.dump(det_json, f)
+    json.dump(det_json, f, indent=4)
 # pprint(det_json)
 
 

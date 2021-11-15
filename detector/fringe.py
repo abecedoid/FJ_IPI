@@ -43,9 +43,16 @@ def droplet_slice_from_image(img:np.ndarray, droplet_label: DropletLabel, radius
     # lower y coord
     ly = int(droplet_label.center()[0] - side/2)
 
+    if lx < 0 or ly < 0:
+        raise SliceOutOfBoundsError
+
     img_slice = img[lx: lx + side, ly: ly + side]
 
     return DropletSlice(img_slice, droplet_label.radius(), score=None)
+
+
+class SliceOutOfBoundsError(Exception):
+    pass
 
 
 def dist2points(p1: list, p2: list) -> float:
@@ -71,7 +78,8 @@ def count_fringes(ds: DropletSlice, max_min_fltr_size: int=3, peak_thr: float=0.
         row_idx = np.where((pk_coords == ds.center_coords()).all(axis=1))[0][0]
         np.delete(pk_coords, row_idx, axis=0)
     except Exception as e:
-        print('for some reason the center was not a part of detected peaks: {}'.format(e))
+        # print('for some reason the center was not a part of detected peaks: {}'.format(e))
+        print('Fringe count failed, skipping...: {}'.format(e))
 
     # compute the distance between center and peak
     dist = dist2points(ds.center_coords(), pk_coords[0])
