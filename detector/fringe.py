@@ -24,6 +24,9 @@ class DropletSlice(object):
     def center_coords(self) -> list:
         return [int(self._img.shape[0]/2), int(self._img.shape[1]/2)]
 
+    def rotate2def(self):
+        raise NotImplemented
+
 
 def get_droplet_slices_from_img(img: np.ndarray, droplet_labels: list) -> list:
     """Returns a list of droplet slices"""

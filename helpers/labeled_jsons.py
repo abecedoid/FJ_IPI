@@ -29,7 +29,7 @@ def load_labelme_droplet_labels(path2json: str) -> list:
     droplets = []
     for shape in shapes_data:
         try:
-            drop = DropletLabel.init_labelme(labelme_struct=shape)
+            drop = DropletLabel.init_labelme(labelme_struct=shape, labelme_json_path=path2json)
             droplets.append(drop)
             # droplets.append(DropletLabel.init_labelme(labelme_struct=shape))
         except Exception as e:
@@ -45,19 +45,22 @@ class DropletLabel(ParticlePosition):
     on the radius
 
     _shape_type should be circle (so far)"""
-    def __init__(self, center_pt: list, radius: int, name: str, shape_type: str = 'circle'):
+    def __init__(self, center_pt: list, radius: int, name: str, shape_type: str = 'circle',
+                 fringe_count=None, img_path: str = ''):
         super(DropletLabel, self).__init__()
         try:
             self.name = name
             self._center = [int(np.round(x)) for x in center_pt]
             self._radius = radius
-            self.fringe_count = None
+            self.fringe_count = fringe_count
             self._shape_type = shape_type
+            self.img_path = img_path
         except Exception as e:
             raise ValueError
 
     @classmethod
-    def init_labelme(cls, labelme_struct: dict):
+    def init_labelme(cls, labelme_struct: dict, labelme_json_path: str = ''):
+        """Overloading constructor to initialize using label me json structure"""
         name = labelme_struct.get('label')
         points = labelme_struct.get('points')
 
@@ -67,7 +70,17 @@ class DropletLabel(ParticlePosition):
         # compute radius
         radius = int(np.round(np.sqrt((pt2[0] - pt1[0])**2 + (pt2[1] - pt1[1])**2)))
 
-        return cls(center_pt=points[0], radius=radius, name=name)
+        return cls(center_pt=points[0], radius=radius, name=name, img_path=labelme_json_path)
+
+    @classmethod
+    def init_dict(cls, json_struct: dict, img_path: str = ''):
+        """Overloading constructor to initialize using detector output dict structure"""
+        return cls(center_pt=json_struct['center'],
+                   radius=json_struct['radius'],
+                   name=json_struct['name'],
+                   shape_type=json_struct['shape'],
+                   fringe_count=json_struct['fringe_count'],
+                   img_path=img_path)
 
     def center(self) -> tuple:
         """returns a tuple of [x, y] denoting droplet's center"""
@@ -89,6 +102,7 @@ class DropletLabel(ParticlePosition):
     def __str__(self):
         s = 'DropletLabel:\n'
         s += 'Name: {} \n'.format(self.name)
+        s += 'Img path: {} \n'.format(self.img_path)
         s += 'Center: {} \n'.format(self.center())
         s += 'Radius: {} \n'.format(self.radius())
         s += 'Fringe count: {} \n'.format(self.fringe_count)
@@ -101,6 +115,7 @@ class DropletLabel(ParticlePosition):
         d['radius'] = self.radius()
         d['fringe_count'] = self.fringe_count
         d['shape'] = self._shape_type
+        d['img_path'] = self.img_path
         return d
 
 
@@ -172,13 +187,13 @@ def plot_points_on_image(point_list: list, img: np.ndarray):
     cv2.waitKey()
 
 
-def coords2droplet_labels_list(coords: np.ndarray, circle_radius: int) -> list:
+def coords2droplet_labels_list(coords: np.ndarray, circle_radius: int, img_path: str = '') -> list:
     """Takes ndarray of centers of detected circles [N X 2] and converts it to a list of droplet labels"""
     droplets = []
 
     for i, coord in enumerate(coords):
         name = 'detection_{}'.format(i)
-        det_drop = DropletLabel(center_pt=coord, radius=circle_radius, name=name)
+        det_drop = DropletLabel(center_pt=coord, radius=circle_radius, name=name, img_path=img_path)
         droplets.append(det_drop)
 
     return droplets

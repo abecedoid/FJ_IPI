@@ -43,7 +43,8 @@ for k, jpath in enumerate(LM_PATHS):
                                 peakfind_min_max_nghbr=dsettings['peakfind_min_max_nghbr'],
                                 debug=dsettings['debug'])
 
-        det_droplets = coords2droplet_labels_list(coords, circle_radius=dsettings['circle_mask_rad'])
+        det_droplets = coords2droplet_labels_list(coords, circle_radius=dsettings['circle_mask_rad'],
+                                                  img_path=jpath)
     except Exception as e:
         print('Detecting circles in image {} failed: {}, skipping image'.format(jpath, e))
         continue
