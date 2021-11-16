@@ -1,5 +1,5 @@
 import numpy as np
-from helpers.labeled_jsons import DropletLabel
+from helpers.labeled_jsons import DropletLabel, load_labelme_image
 from detector.circle_detector import find_peaks2d
 
 
@@ -29,7 +29,7 @@ class DropletSlice(object):
 
 
 def get_droplet_slices_from_img(img: np.ndarray, droplet_labels: list) -> list:
-    """Returns a list of droplet slices"""
+    """Returns a list of droplet slices from one image"""
     dslices = []
     for dlabel in droplet_labels:
         try:
@@ -38,15 +38,42 @@ def get_droplet_slices_from_img(img: np.ndarray, droplet_labels: list) -> list:
             print('Failed to get droplet slice from img at coords {}, cause: {}'.format(str(DropletLabel), e))
 
 
-def droplet_slice_from_image(img:np.ndarray, droplet_label: DropletLabel, radius_offset: int=5) -> DropletSlice:
+def get_droplet_slices(droplet_labels: list) -> list:
+    """Returns a list of droplet slices from any images if accessible"""
+    dslices = []
+    # fill empty array with data
+    for k, dlabel in enumerate(droplet_labels):
+
+        img = load_labelme_image(path2json=dlabel.img_path)
+
+        try:
+            dslice = droplet_slice_from_image(img, dlabel)
+        except SliceOutOfBoundsError as serr:
+            print('slice out of bounds...')
+            continue
+        except Exception as e:
+            print('some other problem with getting the slice {}'.format(e))
+            continue
+
+        dslices.append(dslice)
+    return dslices
+
+
+def droplet_slice_from_image(img: np.ndarray, droplet_label: DropletLabel, radius_offset: int = 5) -> DropletSlice:
     # compute slice's side
     side = 2 * droplet_label.radius() + 2 * radius_offset
+
     # lower x coord
     lx = int(droplet_label.center()[1] - side/2)
     # lower y coord
     ly = int(droplet_label.center()[0] - side/2)
 
-    if lx < 0 or ly < 0:
+    # higher x coord
+    hx = int(droplet_label.center()[1] + side / 2)
+    # higher y coord
+    hy = int(droplet_label.center()[0] + side / 2)
+
+    if lx < 0 or ly < 0 or hx > img.shape[0] or hy > img.shape[1]:
         raise SliceOutOfBoundsError
 
     img_slice = img[lx: lx + side, ly: ly + side]

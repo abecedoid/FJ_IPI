@@ -1,6 +1,6 @@
 import json
 import os
-from detector.fringe import droplet_slice_from_image
+from detector.fringe import droplet_slice_from_image, SliceOutOfBoundsError, get_droplet_slices_from_img, get_droplet_slices
 from pprint import pprint
 from matplotlib import pyplot as plt
 from helpers.labeled_jsons import DropletLabel, load_labelme_image
@@ -20,7 +20,7 @@ def json_output2fringe_key_dict(data: dict) -> dict:
     for imname, ostruct in data.items():  # across all images
         for det in ostruct['det']:  # go across individual droplets
 
-            det_label = DropletLabel.init_dict(det, img_path=im)
+            det_label = DropletLabel.init_dict(det)
 
             if det_label.fringe_count is None:
                 if None not in det_fcs.keys():
@@ -32,6 +32,29 @@ def json_output2fringe_key_dict(data: dict) -> dict:
                 det_fcs[round(det_label.fringe_count)].append(det_label)
 
     return det_fcs
+
+
+def plot_multiple_drop_slices(dslices: list):
+    MAX_PLOTS = 91
+    if len(dslices) > MAX_PLOTS:
+        print('MAX PLOT is set to {}, not showing all {} slices'.format(MAX_PLOTS, len(dslices)))
+        dslices = dslices[:MAX_PLOTS]
+
+    plt.figure()
+    idx = 0
+    for m in range(1, 9):
+        for n in range(1, 9):
+            idx += 1
+            if idx > len(dslices):
+                break
+            try:
+                plt.subplot(9, 9, idx)
+                plt.imshow(dslices[idx].img)
+            except Exception as e:
+                break
+
+    plt.show()
+
 
 try:
     with open(FILEPATH, 'r') as f:
@@ -71,14 +94,8 @@ plt.show()
 
 
 dd = json_output2fringe_key_dict(data)
-# average those where 40
-# arr = np.zeros((70, 70, len(dd[40])))
-# # fill empty array with data
-# dirpath =
-# img = load_labelme_image(path2json=)
-# for dlabel in dd[40]:
-#     dslice = droplet_slice_from_image()
-
+dslices = get_droplet_slices(dd[4])
+plot_multiple_drop_slices(dslices)
 
 print('hehe')
 

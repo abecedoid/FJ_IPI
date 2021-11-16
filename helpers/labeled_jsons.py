@@ -73,14 +73,14 @@ class DropletLabel(ParticlePosition):
         return cls(center_pt=points[0], radius=radius, name=name, img_path=labelme_json_path)
 
     @classmethod
-    def init_dict(cls, json_struct: dict, img_path: str = ''):
+    def init_dict(cls, json_struct: dict):
         """Overloading constructor to initialize using detector output dict structure"""
-        return cls(center_pt=json_struct['center'],
-                   radius=json_struct['radius'],
-                   name=json_struct['name'],
-                   shape_type=json_struct['shape'],
-                   fringe_count=json_struct['fringe_count'],
-                   img_path=img_path)
+        return cls(center_pt=json_struct.get('center'),
+                   radius=json_struct.get('radius'),
+                   name=json_struct.get('name'),
+                   shape_type=json_struct.get('shape'),
+                   fringe_count=json_struct.get('fringe_count'),
+                   img_path=json_struct.get('img_path'))
 
     def center(self) -> tuple:
         """returns a tuple of [x, y] denoting droplet's center"""
