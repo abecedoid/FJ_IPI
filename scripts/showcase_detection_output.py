@@ -34,6 +34,33 @@ def json_output2fringe_key_dict(data: dict) -> dict:
     return det_fcs
 
 
+def filter_fringe_key_dict_by_score(fringe_key: dict, interval: tuple) -> dict:
+    # todo - this might fail if there are no scores yet...
+    """Takes a dictionary of format [number of fringes] -> list[DropletLabel1, ..... N]
+    and lets through only droplet labels, which are inside the interval (lower score value, higher score value)
+    If either of values in the tuple is None -> that means not bound"""
+    # assert interval[0] < interval[1]
+
+    bounds = [*interval]
+    if bounds[0] is None:
+        bounds[0] = -np.inf
+    if bounds[1] is None:
+        bounds[0] = np.inf
+
+    out = {}
+    for N_fringes, dlabel_list in fringe_key.items():
+        out[N_fringes] = []
+        for dlabel in dlabel_list:
+
+            if dlabel.score() is None:
+                continue
+
+            if bounds[0] <= dlabel.score() <= bounds[1]:
+                    out[N_fringes].append(dlabel)
+
+    return out
+
+
 def plot_multiple_drop_slices(dslices: list):
     MAX_PLOTS = 91
     if len(dslices) > MAX_PLOTS:
@@ -88,14 +115,26 @@ print('detections: {}/ground truth: {}'.format(N_dets, N_gts))
 print('{} Fringes extracted from {} detections ({}/{})'.format(N_ok_fringes, N_dets,
                                                                N_ok_fringes, N_dets))
 print('we have {} fringe counts'.format(len(fringe_counts)))
-plt.figure()
-plt.hist(fringe_counts, bins=50)
-plt.show()
+# plt.figure()
+# plt.hist(fringe_counts, bins=50)
+# plt.show()
 
 
 dd = json_output2fringe_key_dict(data)
-dslices = get_droplet_slices(dd[4])
-plot_multiple_drop_slices(dslices)
+dx = dd[4]
+
+# dslices = get_droplet_slices(dd[4])
+
+# split into good and bad based on score...
+dx_bad = filter_fringe_key_dict_by_score(dd, interval=(None, 50))
+dx_good = filter_fringe_key_dict_by_score(dd, interval=(20, None))
+
+
+dslices_bad = get_droplet_slices(dx_bad[4])
+dslices_good = get_droplet_slices(dx_good[4])
+
+plot_multiple_drop_slices(dslices_bad)
+plot_multiple_drop_slices(dslices_good)
 
 print('hehe')
 

@@ -39,6 +39,39 @@ def load_labelme_droplet_labels(path2json: str) -> list:
     return droplets
 
 
+class DropletSlice(object):
+    def __init__(self, img: np.ndarray, radius: int, score=None):
+        self._img = img
+        self._radius = radius
+        self._score = score
+
+    @property
+    def img(self):
+        return self._img
+
+    @img.setter
+    def img(self, img: np.ndarray):
+        self._img = img
+
+    @property
+    def radius(self):
+        return self._radius
+
+    @property
+    def score(self):
+        return self._score
+
+    @score.setter
+    def score(self, score: float):
+        self._score = score
+
+    def center_coords(self) -> list:
+        return [int(self._img.shape[0]/2), int(self._img.shape[1]/2)]
+
+    def rotate_horizontal(self):
+        raise NotImplemented
+
+
 class DropletLabel(ParticlePosition):
     """Holds info about the droplet label
     _points is a list of two points, where first is the center of the circle and the second is some rando
@@ -46,7 +79,8 @@ class DropletLabel(ParticlePosition):
 
     _shape_type should be circle (so far)"""
     def __init__(self, center_pt: list, radius: int, name: str, shape_type: str = 'circle',
-                 fringe_count=None, img_path: str = ''):
+                 fringe_count=None, img_path: str = '', droplet_slice: DropletSlice = None,
+                 score=None):
         super(DropletLabel, self).__init__()
         try:
             self.name = name
@@ -55,6 +89,8 @@ class DropletLabel(ParticlePosition):
             self.fringe_count = fringe_count
             self._shape_type = shape_type
             self.img_path = img_path
+            self.slice = droplet_slice
+            self._score = score
         except Exception as e:
             raise ValueError
 
@@ -80,7 +116,8 @@ class DropletLabel(ParticlePosition):
                    name=json_struct.get('name'),
                    shape_type=json_struct.get('shape'),
                    fringe_count=json_struct.get('fringe_count'),
-                   img_path=json_struct.get('img_path'))
+                   img_path=json_struct.get('img_path'),
+                   score=json_struct.get('score'))
 
     def center(self) -> tuple:
         """returns a tuple of [x, y] denoting droplet's center"""
@@ -99,6 +136,12 @@ class DropletLabel(ParticlePosition):
         """returns area of the droplet"""
         return np.pi * self.radius()**2
 
+    def score(self):
+        try:
+            return self.slice.score
+        except Exception as e:
+            return self._score
+
     def __str__(self):
         s = 'DropletLabel:\n'
         s += 'Name: {} \n'.format(self.name)
@@ -106,6 +149,7 @@ class DropletLabel(ParticlePosition):
         s += 'Center: {} \n'.format(self.center())
         s += 'Radius: {} \n'.format(self.radius())
         s += 'Fringe count: {} \n'.format(self.fringe_count)
+        s += 'Score: {} \n'.format(self.slice.score)
         return s
 
     def json(self):
@@ -116,6 +160,7 @@ class DropletLabel(ParticlePosition):
         d['fringe_count'] = self.fringe_count
         d['shape'] = self._shape_type
         d['img_path'] = self.img_path
+        d['score'] = self.score()
         return d
 
 

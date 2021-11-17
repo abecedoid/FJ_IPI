@@ -53,8 +53,11 @@ for k, jpath in enumerate(LM_PATHS):
     for det_droplet in det_droplets:
         try:
             ds = droplet_slice_from_image(img, det_droplet)
-            n_fringes, DS, pk_coords = count_fringes(ds)
+            n_fringes, DS, pk_coords, score = count_fringes(ds)
+            ds.score = score
+            det_droplet.slice = ds
             det_droplet.fringe_count = n_fringes
+
         except SliceOutOfBoundsError as se:
             print('Slice is out of bounds, cannot count fringes on incomplete circle')
             continue
