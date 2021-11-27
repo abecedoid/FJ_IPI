@@ -33,7 +33,7 @@ def load_labelme_droplet_labels(path2json: str) -> list:
             droplets.append(drop)
             # droplets.append(DropletLabel.init_labelme(labelme_struct=shape))
         except Exception as e:
-            droplets.append(None)
+            droplets.append(DropletLabel(center_pt=[0, 0], radius=0, name='fail'))
             print('Failed to load DropletLabel from {} because {}'.format(shape, e))
 
     return droplets
@@ -212,7 +212,10 @@ def plot_multiple_droplet_lists_on_image(dict_of_lists: dict, img: np.ndarray):
         droplets = dict_of_lists[key]
 
         for droplet in droplets:
-            img = cv2.circle(img, center=droplet.center(), radius=droplet.radius(), color=COLORS[i], thickness=2)
+            try:
+                img = cv2.circle(img, center=droplet.center(), radius=droplet.radius(), color=COLORS[i], thickness=2)
+            except Exception as e:
+                print('failed to draw circle, because {}'.format(e))
 
     cv2.namedWindow('droplets', cv2.WINDOW_NORMAL)
     cv2.imshow('droplets', img)

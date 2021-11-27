@@ -103,7 +103,7 @@ for imname, ostruct in data.items():        # across all images
 
         try:
             if det['fringe_count'] is not None:
-                    fringe_counts.append(det['fringe_count'])
+                fringe_counts.append(det['fringe_count'])
         except Exception as e:
             print('whassaap')
             continue
@@ -115,9 +115,11 @@ print('detections: {}/ground truth: {}'.format(N_dets, N_gts))
 print('{} Fringes extracted from {} detections ({}/{})'.format(N_ok_fringes, N_dets,
                                                                N_ok_fringes, N_dets))
 print('we have {} fringe counts'.format(len(fringe_counts)))
-# plt.figure()
-# plt.hist(fringe_counts, bins=50)
-# plt.show()
+plt.figure()
+plt.hist(fringe_counts, bins=20, range=(1, 20))
+plt.xlabel('number of fringes')
+plt.ylabel('counts')
+plt.show()
 
 
 dd = json_output2fringe_key_dict(data)

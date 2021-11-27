@@ -52,6 +52,19 @@ def circ_intersection_over_union(truth: DropletLabel, det: DropletLabel):
     return iou
 
 
+s = {
+    'ds_coeff': 2,
+    'circle_mask_rad': 30,
+    'circle_mask_wdth': None,
+    'circle_mask_radoff_size': 5,
+    'pxcorr1': 95,
+    'pxcorr2': 95,
+    'peakfind_thr': 0.1,
+    'peakfind_min_max_nghbr': 30,
+    'debug': False
+}
+
+
 if __name__ == '__main__':
 
     SHOW_IMAGES = True
@@ -82,7 +95,15 @@ if __name__ == '__main__':
         # plt.imshow(img)
         # plt.show()
 
-        coords = detect_circles(img, debug=True, circle_mask_rad=20)
+        # coords = detect_circles(img, debug=True, circle_mask_rad=20)
+        coords = detect_circles(img, DS_COEFF=s['ds_coeff'],
+                                circle_mask_rad=s['circle_mask_rad'],
+                                circle_mask_wdth=s['circle_mask_wdth'],
+                                circle_mask_radoff_size=s['circle_mask_radoff_size'],
+                                pxcorr1=s['pxcorr1'], pxcorr2=s['pxcorr2'],
+                                peakfind_thr=s['peakfind_thr'],
+                                peakfind_min_max_nghbr=s['peakfind_min_max_nghbr'],
+                                debug=s['debug'])
         print(coords)
         ious = []
         det_droplets = []
@@ -90,10 +111,13 @@ if __name__ == '__main__':
 
             # make coords to dropletLabels
             for i, coord in enumerate(coords):
-                name = 'detection_{}'.format(i)
-                det_drop = DropletLabel(center_pt=coord, radius=30, name=name)
-                det_droplets.append(det_drop)
-                ious.append(circ_intersection_over_union(truth=gt_drop, det=det_drop))
+                try:
+                    name = 'detection_{}'.format(i)
+                    det_drop = DropletLabel(center_pt=coord, radius=30, name=name)
+                    det_droplets.append(det_drop)
+                    ious.append(circ_intersection_over_union(truth=gt_drop, det=det_drop))
+                except Exception as e:
+                    continue
 
         plot_dict = {'gt': gt_droplets, 'det': det_droplets}
 

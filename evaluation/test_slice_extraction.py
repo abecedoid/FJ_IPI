@@ -21,10 +21,13 @@ if __name__ == '__main__':
         gt_droplets = load_labelme_droplet_labels(impath)
 
         for gt_droplet in gt_droplets:
-            ds = droplet_slice_from_image(img, gt_droplet)
+            try:
+                ds = droplet_slice_from_image(img, gt_droplet)
 
-            plt.figure()
-            plt.imshow(ds.img)
-            plt.show()
+                plt.figure()
+                plt.imshow(ds.img)
+                plt.show()
+            except Exception as e:
+                continue
 
 
