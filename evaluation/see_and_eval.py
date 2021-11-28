@@ -2,57 +2,86 @@ import os
 import sys
 import cv2
 import numpy as np
-from helpers.labeled_jsons import load_labelme_image, plot_image, load_labelme_droplet_labels
+from helpers.labeled_jsons import load_labelme_image, plot_image, \
+    load_labelme_droplet_labels, plot_multiple_droplet_lists_on_image
 import matplotlib.pyplot as plt
 import glob
 from detector.circle_detector import detect_circles
+from detector.fringe import droplet_slice_from_image
+import json
+from helpers.labeled_jsons import DropletLabel, DropletSlice
+
+OUTPUT_JSON_FILEPATH = '../scripts/det_output.json'
+OUTPUT_JSON_FILEPATH = os.path.abspath(OUTPUT_JSON_FILEPATH)
 
 
-# JSON_PATH = os.path.abspath('../resources/105mm_60deg.6mxcodhz.000000')
-
-# dsettings = {
-#     'ds_coeff': 2,
-#     'circle_mask_rad': 30,
-#     'circle_mask_wdth': None,
-#     'circle_mask_radoff_size': 5,
-#     'pxcorr1': 90,
-#     'pxcorr2': 90,
-#     'peakfind_thr': 0.1,
-#     'peakfind_min_max_nghbr': 30,
-#     'debug': False
-# }
+try:
+    with open(OUTPUT_JSON_FILEPATH, 'r') as f:
+        data = json.load(f)
+except FileNotFoundError:
+    print('File {} does not exist'.format(OUTPUT_JSON_FILEPATH))
+except Exception as e:
+    print('Couldn\'t open file {}, {}'.format(OUTPUT_JSON_FILEPATH, e))
 
 
-# def preprocess_img(img: np.ndarray):
-#     # img = cv2.normalize(img, None, alpha=255, beta=0, norm_type=cv2.NORM_MINMAX)
-#     clahe = cv2.createCLAHE(clipLimit=40.0, tileGridSize=(60, 60))
-#     img = clahe.apply(img)
-#     img[img < 50] = 0
-#     return img
+fringe_counts = []
+N_dets = 0
+N_gts = 0
+
+for imname, ostruct in data.items():        # across all images
+    dets = ostruct['det']
+    gts = ostruct['gt']
+    N_dets += len(dets)
+    N_gts += len(ostruct['gt'])
+
+    # load the image
+    for det in dets:
+        dl = DropletLabel.init_dict(det)
+        if os.path.exists(dl.img_path):
+            impath = dl.img_path
+    img = load_labelme_image(impath)
+
+    det_dls = []
+    # load all det dropletlables
+    for det in dets:                        # go across individual droplets
+        try:
+            det_dls.append(DropletLabel.init_dict(det))
+        except Exception as e:
+            print('failed to initialize droplet label from json output')
+            continue
+
+    gt_dls = []
+    # load all gt droplets
+    for gt in gts:                        # go across individual droplets
+        try:
+            gt_dls.append(DropletLabel.init_dict(gt))
+        except Exception as e:
+            print('failed to initialize droplet label from json output')
+            continue
+
+    # show the image
+    plot_multiple_droplet_lists_on_image({'dets': det_dls, 'gts': gt_dls}, img = img)
 
 
-LM_PATHS = glob.glob(os.path.join(JSON_PATH, '*.json'))
-for k, jpath in enumerate(JSON_PATH):
-    img = load_labelme_image(jpath)
-    pimg = preprocess_img(img)
-    gt_droplets = load_labelme_droplet_labels(jpath)
+
+# N_imgs = len(data.keys())
 
 
-    plt.figure()
-    plt.subplot(221)
-    plt.imshow(img)
-    plt.title('original')
-    plt.subplot(223)
-    plt.hist(img, bins=256 ,histtype='step')
 
-    plt.subplot(222)
-    plt.imshow(pimg)
-    plt.title('processed')
-    plt.subplot(224)
-    plt.hist(pimg, bins=256, histtype='step')
-    plt.show()
+# plt.figure()
+# plt.subplot(221)
+# plt.imshow(img)
+# plt.title('original')
+# plt.subplot(223)
+# plt.hist(img, bins=256 ,histtype='step')
 
-    # todo - this thing will load the json with detector output and show images and labels
+# plt.subplot(222)
+# plt.imshow(pimg)
+# plt.title('processed')
+# plt.subplot(224)
+# plt.hist(pimg, bins=256, histtype='step')
+# plt.show()
+
 
 
 

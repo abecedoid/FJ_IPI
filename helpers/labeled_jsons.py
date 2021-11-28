@@ -207,10 +207,20 @@ def plot_multiple_droplet_lists_on_image(dict_of_lists: dict, img: np.ndarray):
         img = cv2.cvtColor(img, cv2.COLOR_GRAY2RGB)
 
     COLORS = ((0, 0, 255), (0, 255, 0), (255, 0, 0))
+    # todo - move to external config
+    font_settings = {}
+    font_settings['bottom_left_corner'] = (40, 40)
+    font_settings['font'] = cv2.FONT_HERSHEY_SIMPLEX
+    font_settings['font_scale'] = 1
+    font_settings['font_color'] = (255, 255, 255)
+    font_settings['thickness'] = 1
+    font_settings['line_type'] = 2
+
+    legend_text = ''
 
     for i, key in enumerate(dict_of_lists.keys()):
         droplets = dict_of_lists[key]
-
+        legend_text += str(key) + ': ' + str(COLORS[i]) + ' (BGR) || '
         for droplet in droplets:
             try:
                 img = cv2.circle(img, center=droplet.center(), radius=droplet.radius(), color=COLORS[i], thickness=2)
@@ -218,10 +228,15 @@ def plot_multiple_droplet_lists_on_image(dict_of_lists: dict, img: np.ndarray):
                 print('failed to draw circle, because {}'.format(e))
 
     cv2.namedWindow('droplets', cv2.WINDOW_NORMAL)
+    cv2.putText(img, legend_text,
+                font_settings['bottom_left_corner'],
+                font_settings['font'],
+                font_settings['font_scale'],
+                font_settings['font_color'],
+                font_settings['thickness'],
+                font_settings['line_type'])
     cv2.imshow('droplets', img)
     cv2.waitKey(0)
-    # cv2.imshow('droplets', img)
-    # cv2.waitKey(0)
 
 
 def plot_points_on_image(point_list: list, img: np.ndarray):
