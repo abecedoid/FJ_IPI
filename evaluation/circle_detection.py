@@ -57,12 +57,13 @@ s = {
     'circle_mask_rad': 30,
     'circle_mask_wdth': None,
     'circle_mask_radoff_size': 5,
-    'pxcorr1': 95,
-    'pxcorr2': 95,
+    'pxcorr1': 90,
+    'pxcorr2': 90,
     'peakfind_thr': 0.1,
     'peakfind_min_max_nghbr': 30,
     'debug': False
 }
+
 
 
 if __name__ == '__main__':

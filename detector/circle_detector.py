@@ -179,16 +179,49 @@ def detect_circles(img: np.ndarray, DS_COEFF: int = 2,
 
 
 if __name__ == '__main__':
+
+    # preprocessing
+    def preprocess_img(img: np.ndarray):
+        # img = cv2.normalize(img, None, alpha=255, beta=0, norm_type=cv2.NORM_MINMAX)
+        clahe = cv2.createCLAHE(clipLimit=40.0, tileGridSize=(60, 60))
+        img = clahe.apply(img)
+        img[img < 50] = 0
+        return img
+
+
+    dsettings = {
+        'ds_coeff': 2,
+        'circle_mask_rad': 30,
+        'circle_mask_wdth': None,
+        'circle_mask_radoff_size': 5,
+        'pxcorr1': 90,
+        'pxcorr2': 90,
+        'peakfind_thr': 0.1,
+        'peakfind_min_max_nghbr': 30,
+        'debug': True
+    }
+
     # demicko
     path = '../resources/105mm_60deg.6mxcodhz.000000/105mm_60deg.6mxcodhz.000000.json'
     # path = '../resources/105mm_60deg.6mt18gqf.000099.json'
     path = os.path.abspath(os.path.join(os.getcwd(), path))
 
     img = load_labelme_image(path)
+
+
     from helpers.labeled_jsons import load_labelme_droplet_labels, coords2droplet_labels_list, plot_multiple_droplet_lists_on_image
     gt_droplets = load_labelme_droplet_labels(path)
+    pimg = preprocess_img(img)
+    coords = detect_circles(pimg, DS_COEFF=dsettings['ds_coeff'],
+                            circle_mask_rad=dsettings['circle_mask_rad'],
+                            circle_mask_wdth=dsettings['circle_mask_wdth'],
+                            circle_mask_radoff_size=dsettings['circle_mask_radoff_size'],
+                            pxcorr1=dsettings['pxcorr1'], pxcorr2=dsettings['pxcorr2'],
+                            peakfind_thr=dsettings['peakfind_thr'],
+                            peakfind_min_max_nghbr=dsettings['peakfind_min_max_nghbr'],
+                            debug=dsettings['debug'])
 
-    coords = detect_circles(img, debug=True, circle_mask_rad=30)
+    # coords = detect_circles(img, debug=True, circle_mask_rad=30)
     det_droplets = coords2droplet_labels_list(coords, circle_radius=30)
     print(coords)
     plot_dict = {'gt': gt_droplets, 'det': det_droplets}

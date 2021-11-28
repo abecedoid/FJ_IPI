@@ -36,7 +36,7 @@ class DetectionEvaluator(object):
         self.confusion_mat = ConfusionMatrix(gt_labels=self._dl_labeled,
                                              det_labels=self._dl_dets,
                                              gt2dets=self._labels2dets)
-        # print(self.confusion_mat)
+        print(self.confusion_mat)
 
     def _pair_detections_labels(self):
         # todo - add score of the detection - basically the distance, right?

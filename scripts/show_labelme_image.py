@@ -1,7 +1,11 @@
 import os
 import argparse
 import sys
-sys.path.append('../')
+sys.path.append('..')
+sys.path.append('.')
+
+# from helpers.labeled_jsons import load_labelme_image, plot_image
+# from helpers.labeled_jsons import load_labelme_image, plot_image
 from helpers.labeled_jsons import load_labelme_image, plot_image
 
 parser = argparse.ArgumentParser(description='Displays the image in the labelme\' json file')
@@ -14,8 +18,16 @@ except Exception as e:
     print('Invalid path, {}'.format(e))
     sys.exit()
 
-print('Loading {} ...'.format(path2json))
-img = load_labelme_image(path2json)
-plot_image(img)
+if os.path.isdir(path2json):
+    json_filenames = os.listdir(path2json)
+    for filename in json_filenames:
+        path = os.path.join(path2json, filename)
+        print('Loading {} ...'.format(path2json))
+        img = load_labelme_image(path)
+        plot_image(img)
+else:
+    print('Loading {} ...'.format(path2json))
+    img = load_labelme_image(path2json)
+    plot_image(img)
 
 

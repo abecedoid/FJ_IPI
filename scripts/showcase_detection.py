@@ -33,8 +33,17 @@ for k, jpath in enumerate(LM_PATHS):
     img = load_labelme_image(jpath)
     gt_droplets = load_labelme_droplet_labels(jpath)
 
+    def preprocess_img(img: np.ndarray):
+        # img = cv2.normalize(img, None, alpha=255, beta=0, norm_type=cv2.NORM_MINMAX)
+        clahe = cv2.createCLAHE(clipLimit=40.0, tileGridSize=(60, 60))
+        img = clahe.apply(img)
+        img[img < 50] = 0
+        return img
+
+    pimg = preprocess_img(img)
+
     try:
-        coords = detect_circles(img, DS_COEFF=dsettings['ds_coeff'],
+        coords = detect_circles(pimg, DS_COEFF=dsettings['ds_coeff'],
                                 circle_mask_rad=dsettings['circle_mask_rad'],
                                 circle_mask_wdth=dsettings['circle_mask_wdth'],
                                 circle_mask_radoff_size=dsettings['circle_mask_radoff_size'],

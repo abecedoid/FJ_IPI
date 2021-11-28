@@ -125,18 +125,18 @@ plt.show()
 dd = json_output2fringe_key_dict(data)
 dx = dd[4]
 
-# dslices = get_droplet_slices(dd[4])
+dslices = get_droplet_slices(dd[6])
 
 # split into good and bad based on score...
-dx_bad = filter_fringe_key_dict_by_score(dd, interval=(None, 50))
-dx_good = filter_fringe_key_dict_by_score(dd, interval=(20, None))
+# dx_bad = filter_fringe_key_dict_by_score(dd, interval=(None, 50))
+# dx_good = filter_fringe_key_dict_by_score(dd, interval=(20, None))
 
 
-dslices_bad = get_droplet_slices(dx_bad[4])
-dslices_good = get_droplet_slices(dx_good[4])
+# dslices_bad = get_droplet_slices(dx_bad[4])
+# dslices_good = get_droplet_slices(dx_good[4])
 
-plot_multiple_drop_slices(dslices_bad)
-plot_multiple_drop_slices(dslices_good)
+plot_multiple_drop_slices(dslices)
+# plot_multiple_drop_slices(dslices_good)
 
 print('hehe')
 
