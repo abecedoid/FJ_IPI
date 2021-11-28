@@ -2,41 +2,133 @@ import numpy as np
 from helpers.labeled_jsons import DropletLabel, load_labelme_image
 from scipy.spatial.distance import cdist
 import pickle
+import warnings
 import os
 
 
-# TODO - USE THE mAP to see how good it is
-# in the train, did like 3 hours of job
-# do the preprocessing, radius and the fine tuning of the parameters...:/
+class ConfusionMatrix(dict):
+    def __init__(self, gt_labels: list, det_labels: list, gt2dets: dict, from_multiple_imgs: False):
+        super(ConfusionMatrix, self).__init__()
+        """more or less standard confusion matrix
+        inputs:
+            - ground truth labels - list of DropletLabel
+            - detected labels - list of DropletLabel
+            - gt2dets - pairing of gt labels to detected labels
 
+        TP - true positive - detection is where the gt label is
+        FP - false positive - detection is where there is no gt label
+        TN - true negative - detection is not where it is not supposed to be, eh?
+        FN - false negative - detection is missing where the gt label is"""
+        self['TP'] = None
+        self['FP'] = None
+        self['TN'] = None
+        self['FN'] = None
 
-# class MultipleImageEvaluationResult(dict):
-#     """Holds information concerning results of multiple images and their detections"""
-#     def __init__(self):
-#         super(MultipleImageEvaluationResult, self).__init__()
-#         # todo
-#         pass
+        self._gt_labels = gt_labels
+        self._det_labels = det_labels
+        self._gt2dets = gt2dets
+
+        # get the image path from det labels - checks that all paths are the same
+        if not from_multiple_imgs:
+            self._impath = None
+            for dl in self._det_labels:
+                if self._impath is not None:
+                    next_impath = dl.img_path
+                    if next_impath != self._impath:
+                        warnings.warn('List of detection DropletLabels was passed to the ConfusionMatrix'
+                                        'with vairous image paths!')
+                        self._impath = 'MANY'
+                        break
+                else:
+                    self._impath = dl.img_path
+        else:
+            self._impath = 'MANY'
+
+        self._compute()
+
+    def _compute(self):
+        self['TP'] = len(self._gt2dets.keys())
+        self['FP'] = len(self._det_labels) - self['TP']
+        self['TN'] = 0  # todo, really??
+        self['FN'] = len(self._gt_labels) - self['TP']
+
+    def precision(self):
+        return self['TP'] / (self['TP'] + self['FP'])
+
+    def recall(self):
+        return self['TP'] / (self['TP'] + self['FN'])
+
+    def sensitivity(self):
+        return self['TP'] / (self['TP'] + self['FN'])
+
+    def specificity(self):
+        return self['TN'] / (self['TN'] + self['FP'])
+
+    def accuracy(self):
+        return (self['TP'] + self['TN']) / len(self._gt_labels)
+
+    # def __add__(self, other):
+    #     self['TP'] += other.get('TP')
+    #     self['FP'] += other.get('FP')
+    #     self['TN'] += other.get('TN')
+    #     self['FN'] += other.get('FN')
+    #
+    #     self._gt_labels = self._gt_labels + other._gt_labels
+    #     self._det_labels = self._det_labels + other._det_labels
+    #     self._gt2dets.update()
+
+    def __str__(self):
+        s = '=======CONFUSION  MATRIX========\n'
+        s += 'PATH: {}\n'.format(self._impath)
+        s += '|TP: {}\t\t|FN: {}\t\t|\n'.format(self['TP'], self['FN'])
+        s += '|FP: {}\t|TN: {}\t\t|\n'.format(self['FP'], self['TN'])
+        s += '--------------\n'
+        s += 'Sensitivity: {}\n'.format(self.sensitivity())
+        s += 'Precision: {}\n'.format(self.precision())
+        s += 'Recall: {}\n'.format(self.recall())
+        s += 'Precision/Recall: {}\n'.format((self.precision() / self.recall()))
+        # s += 'Specificity: {}\n'.format(self.specificity())
+        # s += 'Accuracy: {}\n'.format(self.accuracy())
+        s += '===============\n'
+        return s
+
+    def json(self) -> dict:
+        d = {}
+        d['img_path'] = self._impath
+        d['TP'] = self['TP']
+        d['FP'] = self['FP']
+        d['TN'] = self['TN']
+        d['FN'] = self['FN']
+
+        d['SENSITIVITY'] = self.sensitivity()
+        d['PRECISION'] = self.precision()
+        d['RECALL'] = self.recall()
+        return d
 
 
 class DetectionEvaluator(object):
     """Takes the ground truth and detections and evaluates the detection performance"""
-    def __init__(self, detections: list, labeled: list, image: np.ndarray):
+    def __init__(self, detections: list, labeled: list, from_multiple_imgs=False):
+    # def __init__(self, detections: list, labeled: list, image: np.ndarray):
         """both detections and labeled lists are lists of DropletLabels"""
         self._dl_dets = detections
         self._dl_labeled = labeled
-        self._img = image
+        # self._img = image
         # todo - make this dynamic - still problem with the radius... urgh
         self._cradius = 30
+        self._from_multiple_imgs = from_multiple_imgs
 
         self._labels2dets = None    # holds mapping from labels to real detections
         self.confusion_mat = None
 
-    def evaluate(self):
+    def evaluate(self) -> ConfusionMatrix:
         self._pair_detections_labels()
         self.confusion_mat = ConfusionMatrix(gt_labels=self._dl_labeled,
                                              det_labels=self._dl_dets,
-                                             gt2dets=self._labels2dets)
+                                             gt2dets=self._labels2dets,
+                                             from_multiple_imgs=self._from_multiple_imgs)
         print(self.confusion_mat)
+        return self.confusion_mat
 
     def _pair_detections_labels(self):
         # todo - add score of the detection - basically the distance, right?
@@ -105,91 +197,6 @@ class DetectionEvaluator(object):
         s += "Distances - mean: {}, std: {}\n".format(distances.mean(), distances.std())
 
         print(s)
-
-
-class ConfusionMatrix(dict):
-    def __init__(self, gt_labels: list, det_labels: list, gt2dets: dict):
-        super(ConfusionMatrix, self).__init__()
-        """more or less standard confusion matrix
-        inputs:
-            - ground truth labels - list of DropletLabel
-            - detected labels - list of DropletLabel
-            - gt2dets - pairing of gt labels to detected labels
-        
-        TP - true positive - detection is where the gt label is
-        FP - false positive - detection is where there is no gt label
-        TN - true negative - detection is not where it is not supposed to be, eh?
-        FN - false negative - detection is missing where the gt label is"""
-        self['TP'] = None
-        self['FP'] = None
-        self['TN'] = None
-        self['FN'] = None
-
-        self._gt_labels = gt_labels
-        self._det_labels = det_labels
-        self._gt2dets = gt2dets
-
-        self._compute()
-
-    def _compute(self):
-        self['TP'] = len(self._gt2dets.keys())
-        self['FP'] = len(self._det_labels) - self['TP']
-        self['TN'] = 0      # todo, really??
-        self['FN'] = len(self._gt_labels) - self['TP']
-
-    def precision(self):
-        return self['TP'] / (self['TP'] + self['FP'])
-
-    def recall(self):
-        return self['TP'] / (self['TP'] + self['FN'])
-
-    def sensitivity(self):
-        return self['TP'] / (self['TP'] + self['FN'])
-
-    def specificity(self):
-        return self['TN'] / (self['TN'] + self['FP'])
-
-    def accuracy(self):
-        return (self['TP'] + self['TN']) / len(self._gt_labels)
-
-    def __str__(self):
-        s =  '===============\n'
-        s += '|TP: {}\t\t|FN: {}\t\t|\n'.format(self['TP'], self['FN'])
-        s += '|FP: {}\t|TN: {}\t\t|\n'.format(self['FP'], self['TN'])
-        s += '--------------\n'
-        s += 'Sensitivity: {}\n'.format(self.sensitivity())
-        s += 'Precision: {}\n'.format(self.precision())
-        s += 'Recall: {}\n'.format(self.recall())
-        s += 'Precision/Recall: {}\n'.format((self.precision() / self.recall()))
-        # s += 'Specificity: {}\n'.format(self.specificity())
-        # s += 'Accuracy: {}\n'.format(self.accuracy())
-        s += '===============\n'
-        return s
-
-
-
-# class ImageDetectionResult(dict):
-#     def __init__(self):
-#         """Holds information about the success of detection of one image"""
-#         super(ImageDetectionResult, self).__init__()
-#         self['N_gt_labels'] = None          # total number of labels to be found
-#         self['N_det_labels'] = None         # total number of labels detected
-#         self['N_pairs_found'] = None        # total number of labels successfully paired
-#         self['N_pairs_found_perc'] = None   # total number of labels successfully paired in percents
-#         self['correct_det_perc'] = None     # ratio of correctly detected to incorrectly detected
-#         self['pairs_distances'] = None      # vector of distances between gt labels and detected labels (only for pairs)
-#
-#     def __str__(self):
-#         s = ''
-#         s += 'GT labels: {}\n'.format(self['N_gt_labels'])
-#         s += 'Detected labels: {}\n'.format(self['N_det_labels'])
-#         s += 'Pairs found: {} ({} %)\n'.format(self['N_pairs_found'], self['N_pairs_found_perc'])
-#         s += 'Detected labels - correct {} / incorrect {} ({} %)\n'.format(self['N_pairs_found'], self['N_pairs_found_perc'])
-#
-#         s += "Distances - mean: {}, std: {}\n".format(self['pairs_distances'].mean(),
-#                                                       self['pairs_distances'].std())
-#
-#         return s
 
 
 if __name__ == '__main__':

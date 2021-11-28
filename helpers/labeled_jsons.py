@@ -198,7 +198,7 @@ def plot_droplet_list_on_image(droplet_list: list, img: np.ndarray):
     cv2.waitKey(0)
 
 
-def plot_multiple_droplet_lists_on_image(dict_of_lists: dict, img: np.ndarray):
+def plot_multiple_droplet_lists_on_image(dict_of_lists: dict, img: np.ndarray, wait_key=True):
     # maximum 3 sets of droplets can be plotted so far...
     assert len(dict_of_lists.keys()) <= 3
     # ensure image is in rgb so that colors are existing
@@ -236,7 +236,9 @@ def plot_multiple_droplet_lists_on_image(dict_of_lists: dict, img: np.ndarray):
                 font_settings['thickness'],
                 font_settings['line_type'])
     cv2.imshow('droplets', img)
-    cv2.waitKey(0)
+
+    if wait_key:
+        cv2.waitKey(0)
 
 
 def plot_points_on_image(point_list: list, img: np.ndarray):
