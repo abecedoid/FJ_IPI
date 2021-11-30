@@ -50,50 +50,51 @@ def get_json_evaluation(det_dls: list, gt_dls: list, from_multiple_imgs=False) -
     return conf_mat
 
 
-data = load_detector_output(OUTPUT_JSON_FILEPATH)
+if __name__ == '__main__':
+    data = load_detector_output(OUTPUT_JSON_FILEPATH)
 
-fringe_counts = []
-N_dets = 0
-N_gts = 0
-conf_mats = {}
-all_det_dls = []
-all_gt_dls = []
+    fringe_counts = []
+    N_dets = 0
+    N_gts = 0
+    conf_mats = {}
+    all_det_dls = []
+    all_gt_dls = []
 
-for imname, ostruct in data.items():        # across all images
-    dets = ostruct['det']
-    gts = ostruct['gt']
+    for imname, ostruct in data.items():        # across all images
+        dets = ostruct['det']
+        gts = ostruct['gt']
 
-    det_dls = json_det_structs2droplet_list(dets)
-    gt_dls = json_det_structs2droplet_list(gts)
+        det_dls = json_det_structs2droplet_list(dets)
+        gt_dls = json_det_structs2droplet_list(gts)
 
-    conf_mats[imname] = get_json_evaluation(det_dls, gt_dls)
+        conf_mats[imname] = get_json_evaluation(det_dls, gt_dls)
 
-    # add to list with all detections and gts over all directory
-    all_det_dls = all_det_dls + det_dls
-    all_gt_dls = all_gt_dls + gt_dls
+        # add to list with all detections and gts over all directory
+        all_det_dls = all_det_dls + det_dls
+        all_gt_dls = all_gt_dls + gt_dls
 
-    if SHOW_IMAGES:
-        # load the image
-        for det in dets:
-            dl = DropletLabel.init_dict(det)
-            if os.path.exists(dl.img_path):
-                impath = dl.img_path
-                break
-        img = load_labelme_image(impath)
+        if SHOW_IMAGES:
+            # load the image
+            for det in dets:
+                dl = DropletLabel.init_dict(det)
+                if os.path.exists(dl.img_path):
+                    impath = dl.img_path
+                    break
+            img = load_labelme_image(impath)
 
-        # show the image
-        plot_multiple_droplet_lists_on_image({'dets': det_dls, 'gts': gt_dls}, img=img, wait_key=False)
-        if cv2.waitKey(0) == 27:
-            SHOW_IMAGES = False
+            # show the image
+            plot_multiple_droplet_lists_on_image({'dets': det_dls, 'gts': gt_dls}, img=img, wait_key=False)
+            if cv2.waitKey(0) == 27:
+                SHOW_IMAGES = False
 
 
-# evaluation across all images in directory
-master_conf_mat = get_json_evaluation(all_det_dls, all_gt_dls, from_multiple_imgs=True)
+    # evaluation across all images in directory
+    master_conf_mat = get_json_evaluation(all_det_dls, all_gt_dls, from_multiple_imgs=True)
 
-json_output = {'overall_evaluation': master_conf_mat.json(),
-               'individual_evaluations': [x.json() for key, x in conf_mats.items()]}
-with open('det_evaluation.json', 'w') as f:
-    json.dump(json_output, f, indent=4)
+    json_output = {'overall_evaluation': master_conf_mat.json(),
+                   'individual_evaluations': [x.json() for key, x in conf_mats.items()]}
+    with open('det_evaluation.json', 'w') as f:
+        json.dump(json_output, f, indent=4)
 
 
 

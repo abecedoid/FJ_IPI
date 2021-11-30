@@ -121,6 +121,13 @@ def detect_circles_labelme_input(img_path: str, DS_COEFF: int=4) -> (np.ndarray,
     return img, coords
 
 
+def preprocess_img(img: np.ndarray, clip_limit=40, tile_size=60):
+    clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=(tile_size, tile_size))
+    img = clahe.apply(img)
+    img[img < 50] = 0
+    return img
+
+
 def detect_circles(img: np.ndarray, DS_COEFF: int = 2,
                    circle_mask_rad: int = 30, circle_mask_wdth: int = None, circle_mask_radoff_size: int = 5,
                    pxcorr1: int = 95, pxcorr2: int = 95,

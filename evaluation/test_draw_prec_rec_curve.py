@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
         det_droplets = coords2droplet_labels_list(coords, circle_radius=30)
 
-        devaluator = DetectionEvaluator(detections=det_droplets, labeled=gt_droplets, image=img)
+        devaluator = DetectionEvaluator(detections=det_droplets, labeled=gt_droplets)
         devaluator.evaluate()
         precisions.append(devaluator.confusion_mat.precision())
         recalls.append(devaluator.confusion_mat.recall())
