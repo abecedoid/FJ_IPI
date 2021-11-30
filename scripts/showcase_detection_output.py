@@ -62,7 +62,7 @@ def filter_fringe_key_dict_by_score(fringe_key: dict, interval: tuple) -> dict:
 
 
 def plot_multiple_drop_slices(dslices: list):
-    MAX_PLOTS = 91
+    MAX_PLOTS = 100
     if len(dslices) > MAX_PLOTS:
         print('MAX PLOT is set to {}, not showing all {} slices'.format(MAX_PLOTS, len(dslices)))
         dslices = dslices[:MAX_PLOTS]

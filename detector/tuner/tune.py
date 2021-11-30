@@ -20,7 +20,7 @@ from evaluation.see_and_eval import *
 #     'pxcorr1': 94,                  # tune from 80 to 99
 #     'pxcorr2': 93,                  # tune from 80 to 99
 #     'peakfind_thr': 0.2,          # tune from 0.001 to 0.5
-#     'peakfind_min_max_nghbr': 10,   # tune from 10 to 50
+#     'peakfind_min_max_nghbr': 20,   # tune from 10 to 50
 #     'CLAHE_clip_limit': 22,          # tune from 2 to 50
 #     'CLAHE_grid_size': 13            # tune from 8 to 60
 # }
@@ -37,12 +37,12 @@ settings = {
     'pxcorr1': 94,                  # tune from 80 to 99
     'pxcorr2': 93,                  # tune from 80 to 99
     'peakfind_thr': 0.2,          # tune from 0.001 to 0.5
-    'peakfind_min_max_nghbr': 10,   # tune from 10 to 50
+    'peakfind_min_max_nghbr': 5,   # tune from 10 to 50
     'CLAHE_clip_limit': 22,          # tune from 2 to 50
     'CLAHE_grid_size': 13            # tune from 8 to 60
 }
 
-TUNE_PARAMETER = 'CLAHE_grid_size'
+TUNE_PARAMETER = 'peakfind_min_max_nghbr'
 TUNE_N_STEPS = 10
 TUNE_STEP = 5
 

@@ -83,7 +83,7 @@ if __name__ == '__main__':
             img = load_labelme_image(impath)
 
             # show the image
-            plot_multiple_droplet_lists_on_image({'dets': det_dls, 'gts': gt_dls}, img=img, wait_key=False)
+            plot_multiple_droplet_lists_on_image({'gts': gt_dls, 'dets': det_dls}, img=img, wait_key=False)
             if cv2.waitKey(0) == 27:
                 SHOW_IMAGES = False
 
