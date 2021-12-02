@@ -59,7 +59,7 @@ def resize_image(img, size=(28,28)):
 
 from helpers.labeled_jsons import load_labelme_image
 #
-path = '../resources/only_one.png'
+path = '../../resources/only_one.png'
 path = os.path.abspath(os.path.join(os.getcwd(), path))
 print('path is: {}'.format(path))
 # img = load_labelme_image(path2json=path)

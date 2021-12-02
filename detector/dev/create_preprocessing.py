@@ -4,13 +4,13 @@ import sys
 import cv2
 import numpy as np
 
+sys.path.append('../..')
 sys.path.append('..')
-sys.path.append('.')
 from helpers.labeled_jsons import load_labelme_image, plot_image
 import matplotlib.pyplot as plt
 
 
-JSON_PATH = os.path.abspath('../resources/105mm_60deg.6mxcodhz.000000')
+JSON_PATH = os.path.abspath('../../resources/105mm_60deg.6mxcodhz.000000')
 
 
 def preprocess_img(img: np.ndarray):
