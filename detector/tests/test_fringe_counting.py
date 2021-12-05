@@ -1,16 +1,14 @@
 import os
-import numpy as np
-from helpers.labeled_jsons import *
-import cv2
-from detector.fringe import *
+import sys
+sys.path.append('../')
+from img_handling.labelme import *
+from detector.fringe_count import *
 import matplotlib.pyplot as plt
-from detector.circle_detector import find_peaks2d
-
 
 
 if __name__ == '__main__':
 
-    DIRPATH = '../resources/105mm_60deg.6mxcodhz.000000'
+    DIRPATH = '../../resources/105mm_60deg.6mxcodhz.000000'
     DIRPATH = os.path.abspath(DIRPATH)
     imfnames = os.listdir(DIRPATH)
 

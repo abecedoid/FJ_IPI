@@ -1,13 +1,12 @@
-import numpy as np
-from helpers.labeled_jsons import DropletLabel, load_labelme_image, coords2droplet_labels_list, load_labelme_droplet_labels
-from helpers.labeled_jsons import plot_multiple_droplet_lists_on_image
-from scipy.spatial.distance import cdist
-import pickle
-import os
+import sys
+sys.path.append('../')
+from img_handling.droplets import coords2droplet_labels_list
+from img_handling.labelme import load_labelme_image, load_labelme_droplet_labels
 from pprint import pprint
-from detector.circle_detector import detect_circles_labelme_input, detect_circles
-from evaluation.eval_result import DetectionEvaluator, ConfusionMatrix
+from detector.circle_detector import detect_circles
+from evaluation.evaluator import DetectionEvaluator
 from matplotlib import pyplot as plt
+
 
 dsettings_normal = {
     'ds_coeff': 2,
@@ -33,12 +32,12 @@ dsettings_tune = {
     'debug': False
 }
 
+
 if __name__ == '__main__':
     s = dsettings_tune
-    IMPATH = '../resources/105mm_60deg.6mxcodhz.000000/105mm_60deg.6mxcodhz.000000.json'
+    IMPATH = '../../resources/105mm_60deg.6mxcodhz.000000/105mm_60deg.6mxcodhz.000000.json'
     img = load_labelme_image(IMPATH)
     gt_droplets = load_labelme_droplet_labels(IMPATH)
-    img = load_labelme_image(IMPATH)
 
     # FIND KNEE
     precisions = []

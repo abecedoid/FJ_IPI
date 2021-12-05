@@ -7,6 +7,7 @@ import scipy.ndimage as nd
 import skimage.feature as ftr
 
 
+
 def create_circular_mask(h, w, center=None, radius=None, circle_width=None):
 
     if center is None: # use the middle of the image
@@ -57,7 +58,7 @@ def resize_image(img, size=(28,28)):
 # plt.imshow(mask)
 # plt.show()
 
-from helpers.labeled_jsons import load_labelme_image
+from img_handling.labelme import load_labelme_image
 #
 path = '../../resources/only_one.png'
 path = os.path.abspath(os.path.join(os.getcwd(), path))
@@ -111,7 +112,7 @@ corr = corr / np.amax(corr)
 print('debug')
 
 # coords = ftr.peak_local_max(corr, min_distance=5)
-# from helpers.labeled_jsons import plot_points_on_image
+# from img_handling.labeled_jsons import plot_points_on_image
 # img = plot_points_on_image(coords, img)
 
 # for i, coord in enumerate(coords):

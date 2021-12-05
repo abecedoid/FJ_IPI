@@ -1,8 +1,18 @@
 import os
 import json
 import matplotlib.pyplot as plt
-from helpers.labeled_jsons import *
-from detector.fringe import droplet_slice_from_image, SliceOutOfBoundsError, get_droplet_slices_from_img, get_droplet_slices, count_fringes
+from img_handling.droplets import *
+from detector.fringe_count import droplet_slice_from_image, count_fringes
+from img_handling.labelme import *
+
+# todo - this histogram comparison doesnt look that good so far, eeeh...
+
+"""Takes the detector json output, gets the number of fringes from the file,
+because there is no ground truth for number of fringes, it cuts the gt labels
+and uses the same algorithm to check the number of fringes
+
+the test is more for detection of droplets than for the fringe counter,
+as the algorithm would test itself against itself:-)"""
 
 
 DET_OUTPUT_JSON_PATH = '../scripts/det_output.json'
@@ -49,7 +59,6 @@ for imname, ostruct in data.items():        # across all images
                 gt_fringe_counts.append(fr_ct)
         except Exception as e:
             print(e)
-            print('whassaap')
             continue
 
 plt.figure()

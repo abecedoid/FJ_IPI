@@ -1,31 +1,7 @@
 import numpy as np
-from helpers.labeled_jsons import DropletLabel, load_labelme_image, DropletSlice
+from img_handling.droplets import DropletLabel, DropletSlice
+from img_handling.labelme import load_labelme_image
 from detector.circle_detector import find_peaks2d
-
-
-# class DropletSlice(object):
-#     def __init__(self, img: np.ndarray, radius: int, score=None):
-#         self._img = img
-#         self._radius = radius
-#         self._score = score
-#
-#     @property
-#     def img(self):
-#         return self._img
-#
-#     @img.setter
-#     def img(self, img: np.ndarray):
-#         self._img = img
-#
-#     @property
-#     def radius(self):
-#         return self._radius
-#
-#     def center_coords(self) -> list:
-#         return [int(self._img.shape[0]/2), int(self._img.shape[1]/2)]
-#
-#     def rotate2def(self):
-#         raise NotImplemented
 
 
 def get_droplet_slices_from_img(img: np.ndarray, droplet_labels: list) -> list:
@@ -108,10 +84,10 @@ def count_fringes(ds: DropletSlice, max_min_fltr_size: int=5, peak_thr: float=0.
     pk_vals = np.zeros((pk_coords.shape[0]))
     I_cpy = I.copy()
     for k in range(pk_vals.shape[0]):
-
         pk_vals[k] = I[int(pk_coords[k, 0]), int(pk_coords[k, 1])]
         I_cpy[int(pk_coords[k, 0]), int(pk_coords[k, 1])] = np.nan
-    print('hehe')
+
+    # todo - remake the slice scoring system
     pk_mval = np.nanmean(pk_vals)
     bgrnd = np.nanmean(I_cpy[:])
     score = pk_mval / bgrnd

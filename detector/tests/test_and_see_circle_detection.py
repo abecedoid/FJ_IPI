@@ -1,10 +1,11 @@
+import sys
+sys.path.append('../')
 import os
-import numpy as np
 import math
 from detector.circle_detector import detect_circles_labelme_input, detect_circles
-from detector.fringe import get_droplet_slices_from_img
-from helpers.labeled_jsons import *
-import matplotlib.pyplot as plt
+from img_handling.droplets import *
+from img_handling.plotters import *
+from img_handling.labelme import *
 import pickle
 
 
@@ -65,11 +66,10 @@ s = {
 }
 
 
-
 if __name__ == '__main__':
 
     SHOW_IMAGES = True
-    DIRPATH = '../resources/105mm_60deg.6mxcodhz.000000'
+    DIRPATH = '../../resources/105mm_60deg.6mxcodhz.000000'
     DIRPATH = os.path.abspath(DIRPATH)
     imfnames = os.listdir(DIRPATH)
 
@@ -79,22 +79,6 @@ if __name__ == '__main__':
 
         img = load_labelme_image(impath)
         gt_droplets = load_labelme_droplet_labels(impath)
-
-        # plt.figure()
-        # plt.subplot(121)
-        # plt.imshow(img)
-
-        # PREPROCESSING - JUST FOR NOW
-        # bckg_thr = 20
-        # alpha = 1.8
-        # beta = 40
-        # img[img < bckg_thr] = 0
-        # # img = cv2.equalizeHist(img)
-        # img = cv2.convertScaleAbs(img, alpha=alpha, beta=beta)
-
-        # plt.subplot(122)
-        # plt.imshow(img)
-        # plt.show()
 
         # coords = detect_circles(img, debug=True, circle_mask_rad=20)
         coords = detect_circles(img, DS_COEFF=s['ds_coeff'],

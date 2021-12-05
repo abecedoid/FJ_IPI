@@ -1,14 +1,18 @@
 import json
 import os
-from detector.fringe import droplet_slice_from_image, SliceOutOfBoundsError, get_droplet_slices_from_img, get_droplet_slices
+from detector.fringe_count import *
 from pprint import pprint
 from matplotlib import pyplot as plt
-from helpers.labeled_jsons import DropletLabel, load_labelme_image
+from img_handling.droplets import DropletLabel
+from img_handling.labelme import load_labelme_image
 import numpy as np
+from evaluation.evaluator import load_detector_output
+from see_fringe_cutouts import plot_multiple_drop_slices
 
 
 FILEPATH = 'det_output.json'
 FILEPATH = os.path.abspath(FILEPATH)
+GT_FRINGE_COUNT = True
 
 
 def json_output2fringe_key_dict(data: dict) -> dict:
@@ -61,37 +65,9 @@ def filter_fringe_key_dict_by_score(fringe_key: dict, interval: tuple) -> dict:
     return out
 
 
-def plot_multiple_drop_slices(dslices: list):
-    MAX_PLOTS = 100
-    if len(dslices) > MAX_PLOTS:
-        print('MAX PLOT is set to {}, not showing all {} slices'.format(MAX_PLOTS, len(dslices)))
-        dslices = dslices[:MAX_PLOTS]
+data = load_detector_output(FILEPATH)
 
-    plt.figure()
-    idx = 0
-    for m in range(1, 9):
-        for n in range(1, 9):
-            idx += 1
-            if idx > len(dslices):
-                break
-            try:
-                plt.subplot(9, 9, idx)
-                plt.imshow(dslices[idx].img)
-            except Exception as e:
-                break
-
-    plt.show()
-
-
-try:
-    with open(FILEPATH, 'r') as f:
-        data = json.load(f)
-except FileNotFoundError:
-    print('File {} does not exist'.format(FILEPATH))
-except Exception as e:
-    print('Couldn\'t open file {}, {}'.format(FILEPATH, e))
-
-fringe_counts = []
+fringe_counts_dets = []
 N_dets = 0
 N_gts = 0
 
@@ -103,40 +79,71 @@ for imname, ostruct in data.items():        # across all images
 
         try:
             if det['fringe_count'] is not None:
-                fringe_counts.append(det['fringe_count'])
+                fringe_counts_dets.append(det['fringe_count'])
         except Exception as e:
             print('whassaap')
             continue
 N_imgs = len(data.keys())
 
-N_ok_fringes = len(fringe_counts)
-print('output is from {} images'.format(N_imgs))
-print('detections: {}/ground truth: {}'.format(N_dets, N_gts))
-print('{} Fringes extracted from {} detections ({}/{})'.format(N_ok_fringes, N_dets,
-                                                               N_ok_fringes, N_dets))
-print('we have {} fringe counts'.format(len(fringe_counts)))
+if GT_FRINGE_COUNT:
+    # go through the json output, go across all images, in each take the gts and count the fringes
+    fringe_counts_gts = []
+    for imname, ostruct, in data.items():
+        gts = ostruct['gt']
+
+        img_loaded = False
+
+        for gt in gts:
+            # first need to load the image, some gts can be broken and have invalid path
+            if not img_loaded:
+                if not os.path.exists(gt['img_path']):
+                    continue
+                img = load_labelme_image(gt['img_path'])
+                img_loaded = True
+
+            try:
+                droplet = DropletLabel.init_dict(gt)
+                ds = droplet_slice_from_image(img, droplet)
+                n_fringes, DS, pk_coords, score = count_fringes(ds)
+                fringe_counts_gts.append(n_fringes)
+            except Exception as e:
+                print('Failure when counting fringes of a single droplet: {}'.format(e))
+
+
 plt.figure()
-plt.hist(fringe_counts, bins=20, range=(1, 20))
-plt.xlabel('number of fringes')
-plt.ylabel('counts')
+if GT_FRINGE_COUNT:
+    plt.subplot(121)
+    plt.hist(fringe_counts_dets, bins=20, range=(1, 20))
+    plt.xlabel('number of fringes')
+    plt.ylabel('counts')
+    plt.title('Detections')
+    plt.subplot(122)
+    plt.hist(fringe_counts_gts, bins=20, range=(1, 20))
+    plt.xlabel('number of fringes')
+    plt.ylabel('counts')
+    plt.title('Ground truth')
+else:
+    plt.hist(fringe_counts_dets, bins=20, range=(1, 20))
+    plt.xlabel('number of fringes')
+    plt.ylabel('counts')
+    plt.title('Detections')
+
 plt.show()
 
-
 dd = json_output2fringe_key_dict(data)
-dx = dd[4]
+for n_fr in range(3, 20):
+    dslices = get_droplet_slices(dd[n_fr])
 
-dslices = get_droplet_slices(dd[6])
+    plot_multiple_drop_slices(dslices, title='Random sa''mple of slices with {} fringes'.format(n_fr))
 
+
+# todo - when scoring system is done
 # split into good and bad based on score...
 # dx_bad = filter_fringe_key_dict_by_score(dd, interval=(None, 50))
 # dx_good = filter_fringe_key_dict_by_score(dd, interval=(20, None))
 
-
 # dslices_bad = get_droplet_slices(dx_bad[4])
 # dslices_good = get_droplet_slices(dx_good[4])
 
-plot_multiple_drop_slices(dslices)
-# plot_multiple_drop_slices(dslices_good)
 
-print('hehe')
 

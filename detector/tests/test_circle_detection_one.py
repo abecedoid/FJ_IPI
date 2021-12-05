@@ -1,10 +1,8 @@
-import os
-
-import numpy as np
+import sys
+sys.path.append('../')
 import math
-from detector.circle_detector import detect_circles_labelme_input, detect_circles
-from helpers.labeled_jsons import *
-import matplotlib.pyplot as plt
+from detector.circle_detector import detect_circles
+from img_handling.plotters import *
 
 
 def two_circle_area_intersection(c1: DropletLabel, c2: DropletLabel) -> float:
@@ -56,9 +54,10 @@ if __name__ == '__main__':
     from PIL import Image
 
     SHOW_IMAGES = True
-    PATH = '..//resources//only_one.png'
+    PATH = '../../resources/only_one.png'
     # image = Image.open(PATH)
     img = np.array(Image.open(PATH).convert('L'))
+    # todo - use the global detection settings
     coords = detect_circles(img, circle_mask_rad=20, pxcorr1=99.5,
                             pxcorr2=99.5, debug=True)
 

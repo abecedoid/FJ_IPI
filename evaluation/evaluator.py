@@ -1,9 +1,13 @@
 import numpy as np
-from helpers.labeled_jsons import DropletLabel, load_labelme_image
+from img_handling.labelme import load_labelme_image
 from scipy.spatial.distance import cdist
-import pickle
 import warnings
+import json
+from img_handling.droplets import DropletLabel
+from img_handling.plotters import plot_multiple_droplet_lists_on_image
 import os
+import cv2
+from detector.detector_configuration import get_evaluation_settings
 
 
 class ConfusionMatrix(dict):
@@ -109,13 +113,14 @@ class ConfusionMatrix(dict):
 class DetectionEvaluator(object):
     """Takes the ground truth and detections and evaluates the detection performance"""
     def __init__(self, detections: list, labeled: list, from_multiple_imgs=False):
-    # def __init__(self, detections: list, labeled: list, image: np.ndarray):
         """both detections and labeled lists are lists of DropletLabels"""
         self._dl_dets = detections
         self._dl_labeled = labeled
         # self._img = image
         # todo - make this dynamic - still problem with the radius... urgh
-        self._cradius = 30
+        eval_settings = get_evaluation_settings()
+        self._cradius = eval_settings['pair_dist']
+        # self._cradius = 30
         self._from_multiple_imgs = from_multiple_imgs
 
         self._labels2dets = None    # holds mapping from labels to real detections
@@ -148,8 +153,10 @@ class DetectionEvaluator(object):
         # create distance matrix - distance between center points - rows (labels) X columns (detections)
         distmat = cdist(gt_coords, det_coords)
 
+        # todo - eeeh here the evaluation radius might be a bit oh oh
         # thresholding - distances larger than radius have no overlap, and thus are not interesting
-        distmat[distmat >= 2 * self._cradius] = np.inf
+        distmat[distmat >= 10] = np.inf
+        # distmat[distmat >= 2 * self._cradius] = np.inf
 
         # for each ground truth label, try to find a paired detection
         # if there is none
@@ -199,20 +206,90 @@ class DetectionEvaluator(object):
         print(s)
 
 
+def load_detector_output(path: str):
+    try:
+        with open(path, 'r') as f:
+            data = json.load(f)
+        return data
+    except FileNotFoundError:
+        print('File {} does not exist'.format(path))
+    except Exception as e:
+        print('Couldn\'t open file {}, {}'.format(path, e))
+
+
+def json_det_structs2droplet_list(json_structs: list):
+    """Takes detector json output and parses it into a list of droplets"""
+    droplets = []
+    for struct in json_structs:
+        try:
+            droplets.append(DropletLabel.init_dict(struct))
+        except Exception as e:
+            print('failed to initialize droplet label from json output: {}'.format(e))
+            continue
+    return droplets
+
+
+def get_json_evaluation(det_dls: list, gt_dls: list, from_multiple_imgs=False) -> ConfusionMatrix:
+    """Wrapper function
+    det_dls - list of detection DropletLabels
+    gt_dls - list of ground truth DropletLabels"""
+    det_evaluator = DetectionEvaluator(detections=det_dls, labeled=gt_dls, from_multiple_imgs=from_multiple_imgs)
+    conf_mat = det_evaluator.evaluate()
+    return conf_mat
+
+
+"""Takes the detector json output, shows all pictures (next picuture - any key, 
+skip picutres - esc key) and afterwards shows all confusion mats + creates a json 
+containing all individual confusion matrixes for each image and then a master confusion 
+matrix for all images aggregated"""
+
+
+OUTPUT_JSON_FILEPATH = '../scripts/det_output.json'
+OUTPUT_JSON_FILEPATH = os.path.abspath(OUTPUT_JSON_FILEPATH)
+SHOW_IMAGES = True
+
 if __name__ == '__main__':
-    IMPATH = '../resources/105mm_60deg.6mxcodhz.000000/105mm_60deg.6mxcodhz.000000.json'
-    img = load_labelme_image(IMPATH)
+    data = load_detector_output(OUTPUT_JSON_FILEPATH)
 
-    with open('gt_det_droplets.pkl', 'rb') as f:
-        dets_dict = pickle.load(f)
+    fringe_counts = []
+    N_dets = 0
+    N_gts = 0
+    conf_mats = {}
+    all_det_dls = []
+    all_gt_dls = []
 
-    # load the ground truth and detected droplets
-    gts = dets_dict['gt']
-    dets = dets_dict['det']
+    for imname, ostruct in data.items():        # across all images
+        dets = ostruct['det']
+        gts = ostruct['gt']
 
-    devaluator = DetectionEvaluator(detections=dets, labeled=gts, image=img)
-    devaluator.evaluate()
-    # devaluator._pair_detections_labels()
+        det_dls = json_det_structs2droplet_list(dets)
+        gt_dls = json_det_structs2droplet_list(gts)
 
-    # print(devaluator._labels2dets)
-    # devaluator.stats_print()
+        conf_mats[imname] = get_json_evaluation(det_dls, gt_dls)
+
+        # add to list with all detections and gts over all directory
+        all_det_dls = all_det_dls + det_dls
+        all_gt_dls = all_gt_dls + gt_dls
+
+        if SHOW_IMAGES:
+            # load the image
+            for det in dets:
+                dl = DropletLabel.init_dict(det)
+                if os.path.exists(dl.img_path):
+                    impath = dl.img_path
+                    break
+            img = load_labelme_image(impath)
+
+            # show the image
+            plot_multiple_droplet_lists_on_image({'gts': gt_dls, 'dets': det_dls}, img=img, wait_key=False)
+            if cv2.waitKey(0) == 27:
+                SHOW_IMAGES = False
+
+    # evaluation across all images in directory
+    master_conf_mat = get_json_evaluation(all_det_dls, all_gt_dls, from_multiple_imgs=True)
+
+    json_output = {'overall_evaluation': master_conf_mat.json(),
+                   'individual_evaluations': [x.json() for key, x in conf_mats.items()]}
+    with open('det_evaluation.json', 'w') as f:
+        json.dump(json_output, f, indent=4)
+

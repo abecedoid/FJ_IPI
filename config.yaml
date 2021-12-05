@@ -1,0 +1,14 @@
+detector-settings:
+  circle_mask_rad: 30         # radius of the circle kernel used in the first correlation
+  circle_mask_radoff_size: 5  # how large is the first correlation kernel 2 * circle_mask_rad + 2 * this
+  ds_coeff: 2                 # downsampling coefficient for the input images
+  circle_mask_wdth: Null      # if Null, than only one pixel width for the mask
+  debug: False                # dont use if u dont know
+  pxcorr1: 94                 # threshold for first correlation in circle detector
+  pxcorr2: 93                 # threshold for second correlation in circle detector
+  peakfind_thr: 0.2           # threshold for peakfind function
+  peakfind_min_max_nghbr: 20  # minimum anx maximum filter parameters for peakfind function
+  CLAHE_clip_limit: 22        # CLAHE clip limit :-)
+  CLAHE_grid_size: 13         # tiling parameter for CLAHE to compute the background
+evaluation-settings:
+  pair_dist: 15               # thresh distance in pix, if two labels can be counted as overlapping

@@ -6,7 +6,9 @@ import numpy as np
 
 sys.path.append('../..')
 sys.path.append('..')
-from helpers.labeled_jsons import load_labelme_image, plot_image
+from img_handling.droplets import *
+from img_handling.labelme import *
+from img_handling.plotters import *
 import matplotlib.pyplot as plt
 
 

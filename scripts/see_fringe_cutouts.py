@@ -1,16 +1,18 @@
-import json
 import os
-from detector.fringe import droplet_slice_from_image, SliceOutOfBoundsError, get_droplet_slices_from_img, get_droplet_slices
-from pprint import pprint
+from detector.fringe_count import get_droplet_slices
 from matplotlib import pyplot as plt
-from helpers.labeled_jsons import DropletLabel, load_labelme_image
-import numpy as np
+from img_handling.labelme import DropletLabel
 import random
+from evaluation.evaluator import load_detector_output
+
+
+"""This script takes the detector output and shows a random selection of droplet cutouts with 
+defined number of detected fringes"""
 
 
 FILEPATH = 'det_output.json'
 FILEPATH = os.path.abspath(FILEPATH)
-NO_FRINGES = 4
+NO_FRINGES = 5
 
 
 def json_output2fringe_key_dict(data: dict) -> dict:
@@ -65,16 +67,10 @@ def plot_multiple_drop_slices(dslices: list, title: str = 'title'):
     plt.show()
 
 
-try:
-    with open(FILEPATH, 'r') as f:
-        data = json.load(f)
-except FileNotFoundError:
-    print('File {} does not exist'.format(FILEPATH))
-except Exception as e:
-    print('Couldn\'t open file {}, {}'.format(FILEPATH, e))
+if __name__ == '__main__':
+    data = load_detector_output(FILEPATH)
+    dd = json_output2fringe_key_dict(data)
+    dx = dd[NO_FRINGES]
+    dslices = get_droplet_slices(dd[NO_FRINGES])
+    plot_multiple_drop_slices(dslices, title='Cutouts with {} fringes'.format(NO_FRINGES))
 
-
-dd = json_output2fringe_key_dict(data)
-dx = dd[NO_FRINGES]
-dslices = get_droplet_slices(dd[NO_FRINGES])
-plot_multiple_drop_slices(dslices, title='Cutouts with {} fringes'.format(NO_FRINGES))

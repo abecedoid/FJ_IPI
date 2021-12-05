@@ -1,27 +1,28 @@
 import os
 import glob
-from helpers.labeled_jsons import *
+from img_handling.droplets import *
+from img_handling.labelme import *
 from detector.circle_detector import detect_circles, preprocess_img
-from detector.fringe import *
+from detector.fringe_count import *
+from detector.detector_configuration import *
 import json
-from pprint import pprint
 
-
-settings = {
-    # not need to tune...
-    'circle_mask_rad': 30,      # this should be the radius of the circl in px
-    'circle_mask_radoff_size': 5,
-    'ds_coeff': 2,
-    'circle_mask_wdth': None,
-    'debug': False,
-    # tune these
-    'pxcorr1': 94,                  # tune from 80 to 99
-    'pxcorr2': 93,                  # tune from 80 to 99
-    'peakfind_thr': 0.2,          # tune from 0.001 to 0.5
-    'peakfind_min_max_nghbr': 20,   # tune from 10 to 50
-    'CLAHE_clip_limit': 22,          # tune from 2 to 50
-    'CLAHE_grid_size': 13            # tune from 8 to 60
-}
+settings = get_detector_settings()
+# settings = {
+#     # not need to tune...
+#     'circle_mask_rad': 30,      # this should be the radius of the circl in px
+#     'circle_mask_radoff_size': 5,
+#     'ds_coeff': 2,
+#     'circle_mask_wdth': None,
+#     'debug': False,
+#     # tune these
+#     'pxcorr1': 94,                  # tune from 80 to 99
+#     'pxcorr2': 93,                  # tune from 80 to 99
+#     'peakfind_thr': 0.2,          # tune from 0.001 to 0.5
+#     'peakfind_min_max_nghbr': 20,   # tune from 10 to 50
+#     'CLAHE_clip_limit': 22,          # tune from 2 to 50
+#     'CLAHE_grid_size': 13            # tune from 8 to 60
+# }
 
 DIRPATH = '../resources/105mm_60deg.6mxcodhz.000000/'
 DIRPATH = os.path.abspath(DIRPATH)

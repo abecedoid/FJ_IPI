@@ -3,14 +3,17 @@ import argparse
 import sys
 sys.path.append('..')
 sys.path.append('.')
+from img_handling.labelme import load_labelme_image
+from img_handling.plotters import plot_image
 
-# from helpers.labeled_jsons import load_labelme_image, plot_image
-# from helpers.labeled_jsons import load_labelme_image, plot_image
-from helpers.labeled_jsons import load_labelme_image, plot_image
+
+"""This is just a convenience script to show either labelme image or multiple labelme images in a dir"""
+
 
 parser = argparse.ArgumentParser(description='Displays the image in the labelme\' json file')
-parser.add_argument('json_path', help='path to the json file')
+parser.add_argument('json_path', help='path to the labelme json file or a dir containing labelme json files')
 args = parser.parse_args()
+
 
 try:
     path2json = os.path.abspath(args.json_path)

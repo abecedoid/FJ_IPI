@@ -1,12 +1,9 @@
-from pprint import pprint
-from detector.circle_detector import detect_circles_labelme_input, detect_circles, preprocess_img
-from evaluation.eval_result import DetectionEvaluator, ConfusionMatrix
+from detector.circle_detector import detect_circles, preprocess_img
 from matplotlib import pyplot as plt
-import numpy as np
-import os
 import glob
-from helpers.labeled_jsons import *
-from evaluation.see_and_eval import *
+from img_handling.droplets import *
+from img_handling.labelme import *
+from evaluation.evaluator import *
 
 ## SO LOOKS LIKE THESE PARAMETERS ARE OK:
 # settings = {
