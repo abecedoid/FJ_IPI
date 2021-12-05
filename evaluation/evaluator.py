@@ -243,12 +243,12 @@ skip picutres - esc key) and afterwards shows all confusion mats + creates a jso
 containing all individual confusion matrixes for each image and then a master confusion 
 matrix for all images aggregated"""
 
-
-OUTPUT_JSON_FILEPATH = '../scripts/det_output.json'
-OUTPUT_JSON_FILEPATH = os.path.abspath(OUTPUT_JSON_FILEPATH)
-SHOW_IMAGES = True
-
 if __name__ == '__main__':
+
+    OUTPUT_JSON_FILEPATH = 'scripts/det_output.json'
+    OUTPUT_JSON_FILEPATH = os.path.abspath(OUTPUT_JSON_FILEPATH)
+    SHOW_IMAGES = True
+
     data = load_detector_output(OUTPUT_JSON_FILEPATH)
 
     fringe_counts = []

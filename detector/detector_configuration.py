@@ -3,7 +3,7 @@ import os
 
 
 def load_configuration() -> dict:
-    PATH2CONFIG = os.path.abspath('../config.yaml')
+    PATH2CONFIG = os.path.abspath('config.yaml')
 
     try:
         with open(PATH2CONFIG, 'r') as f:
@@ -11,7 +11,7 @@ def load_configuration() -> dict:
             return config
     except FileNotFoundError as e:
         print('Could not find {} file. Make sure there is a config.yaml file in the root of the project\'s folder, '
-              'error: {}'.format(e))
+              'error: {}'.format(PATH2CONFIG, e))
 
 
 # todo - these two guys are the same, rewrite

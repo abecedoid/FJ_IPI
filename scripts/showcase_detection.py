@@ -1,4 +1,5 @@
 import os
+import sys
 import glob
 from img_handling.droplets import *
 from img_handling.labelme import *
@@ -6,6 +7,10 @@ from detector.circle_detector import detect_circles, preprocess_img
 from detector.fringe_count import *
 from detector.detector_configuration import *
 import json
+
+
+DIRPATH = 'resources/105mm_60deg.6mxcodhz.000000/'
+DIRPATH = os.path.abspath(DIRPATH)
 
 settings = get_detector_settings()
 # settings = {
@@ -23,9 +28,6 @@ settings = get_detector_settings()
 #     'CLAHE_clip_limit': 22,          # tune from 2 to 50
 #     'CLAHE_grid_size': 13            # tune from 8 to 60
 # }
-
-DIRPATH = '../resources/105mm_60deg.6mxcodhz.000000/'
-DIRPATH = os.path.abspath(DIRPATH)
 
 LM_PATHS = glob.glob(os.path.join(DIRPATH, '*.json'))
 LM_NAMES = [x.split(os.sep)[-1] for x in LM_PATHS]
@@ -80,7 +82,7 @@ for k, jpath in enumerate(LM_PATHS):
     det_json[LM_NAMES[k]] = {'gt': gt_droplets_json,
                              'det': det_droplets_json}
 
-with open('det_output.json', 'w') as f:
+with open('scripts/det_output.json', 'w') as f:
     json.dump(det_json, f, indent=4)
 # pprint(det_json)
 

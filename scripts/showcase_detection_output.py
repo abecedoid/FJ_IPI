@@ -10,7 +10,7 @@ from evaluation.evaluator import load_detector_output
 from see_fringe_cutouts import plot_multiple_drop_slices
 
 
-FILEPATH = 'det_output.json'
+FILEPATH = 'scripts/det_output.json'
 FILEPATH = os.path.abspath(FILEPATH)
 GT_FRINGE_COUNT = True
 
