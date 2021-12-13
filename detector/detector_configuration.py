@@ -10,8 +10,17 @@ def load_configuration() -> dict:
             config = yaml.safe_load(f)
             return config
     except FileNotFoundError as e:
-        print('Could not find {} file. Make sure there is a config.yaml file in the root of the project\'s folder, '
-              'error: {}'.format(PATH2CONFIG, e))
+        # try again one dir up and then throw exception
+        up_one = os.path.dirname(os.getcwd())
+        PATH2CONFIG = os.path.join(up_one, 'config.yaml')
+
+        try:
+            with open(PATH2CONFIG, 'r') as f:
+                config = yaml.safe_load(f)
+                return config
+        except FileNotFoundError as e:
+            print('Could not find {} file. Make sure there is a config.yaml file in the root of the project\'s folder, '
+                  'error: {}'.format(PATH2CONFIG, e))
 
 
 # todo - these two guys are the same, rewrite

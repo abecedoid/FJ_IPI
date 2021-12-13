@@ -90,7 +90,7 @@ class ConfusionMatrix(dict):
         s += 'Sensitivity: {}\n'.format(self.sensitivity())
         s += 'Precision: {}\n'.format(self.precision())
         s += 'Recall: {}\n'.format(self.recall())
-        s += 'Precision/Recall: {}\n'.format((self.precision() / self.recall()))
+        # s += 'Precision/Recall: {}\n'.format((self.precision() / self.recall()))
         # s += 'Specificity: {}\n'.format(self.specificity())
         # s += 'Accuracy: {}\n'.format(self.accuracy())
         s += '===============\n'
