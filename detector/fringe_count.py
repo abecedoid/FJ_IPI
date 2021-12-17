@@ -2,6 +2,7 @@ import numpy as np
 from img_handling.droplets import DropletLabel, DropletSlice
 from img_handling.labelme import load_labelme_image
 from detector.circle_detector import find_peaks2d
+import cv2
 
 
 def get_droplet_slices_from_img(img: np.ndarray, droplet_labels: list) -> list:
@@ -14,13 +15,23 @@ def get_droplet_slices_from_img(img: np.ndarray, droplet_labels: list) -> list:
             print('Failed to get droplet slice from img at coords {}, cause: {}'.format(str(DropletLabel), e))
 
 
+def load_img(path: str) -> np.ndarray:
+    img = cv2.imread(path, 0)   # want greyscale
+    return img
+
+
 def get_droplet_slices(droplet_labels: list) -> list:
     """Returns a list of droplet slices from any images if accessible"""
     dslices = []
     # fill empty array with data
     for k, dlabel in enumerate(droplet_labels):
 
-        img = load_labelme_image(path2json=dlabel.img_path)
+        if dlabel.img_path.split('.')[-1] == 'json':
+            img = load_labelme_image(path2json=dlabel.img_path)
+        elif dlabel.img_path.split('.')[-1] == 'png':
+            img = load_img(dlabel.img_path)
+        else:
+            raise 'Use only .json labelme files or *.png images!'
 
         try:
             dslice = droplet_slice_from_image(img, dlabel)

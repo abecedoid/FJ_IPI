@@ -30,8 +30,8 @@ def get_all_files_with_ext_in_tree(dirpath: str, extension: str) -> List[str]:
 
 
 if __name__ == '__main__':
-    DIR_IN = '../resources/IPI_labelme'
-    DIR_OUT = '../resources/IPI_imgs'
+    DIR_IN = '../resources/105mm_60deg.6mxcodhz.000000'
+    DIR_OUT = '../resources/imgs_105mm_60deg.6mxcodhz.000000'
     DIR_IN = os.path.abspath(DIR_IN)
     DIR_OUT = os.path.abspath(DIR_OUT)
 
