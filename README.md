@@ -20,6 +20,10 @@ First you need to append the project's directory to PYTHONPATH
 ```
 export PYTHONPATH="${PYTHONPATH}:/path/to/your/project/"
 ```
+If you are on windows:
+```
+set PYTHONPATH=%PYTHONPATH%;C:\<path\to\your\project>
+```
 
 Some of the following scripts have a version which can be be used straight from the shell
 using arguments. To see the list of needed arguments, use help - for example:
